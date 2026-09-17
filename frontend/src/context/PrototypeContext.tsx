@@ -15,6 +15,8 @@ interface PrototypeContextType {
   deleteProject: (id: string) => void;
   attachArtifactToProject: (projectId: string, artifactId: string) => void;
   detachArtifactFromProject: (projectId: string, artifactId: string) => void;
+  linkArtifactToProject: (projectId: string, artifactId: string) => void;
+  unlinkArtifactFromProject: (projectId: string, artifactId: string) => void;
   
   // Artifacts
   artifacts: Artifact[];
@@ -380,6 +382,8 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         deleteProject,
         attachArtifactToProject,
         detachArtifactFromProject,
+        linkArtifactToProject: attachArtifactToProject,
+        unlinkArtifactFromProject: detachArtifactFromProject,
         artifacts,
         createArtifact,
         updateArtifact,

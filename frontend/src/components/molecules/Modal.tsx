@@ -6,6 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: string;
+  subtitle?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
@@ -16,10 +17,12 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   description,
+  subtitle,
   children,
   footer,
   maxWidth = 'lg',
 }) => {
+  const descText = subtitle || description;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -55,7 +58,7 @@ export const Modal: React.FC<ModalProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border">
           <div>
             <h3 className="text-lg font-semibold text-ink-primary">{title}</h3>
-            {description && <p className="text-xs text-ink-secondary mt-0.5">{description}</p>}
+            {descText && <p className="text-xs text-ink-secondary mt-0.5">{descText}</p>}
           </div>
           <button
             onClick={onClose}

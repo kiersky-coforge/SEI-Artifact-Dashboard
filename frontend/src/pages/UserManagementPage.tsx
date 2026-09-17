@@ -7,7 +7,17 @@ import { HeaderBar } from '../components/molecules/HeaderBar';
 import { StatCard } from '../components/molecules/StatCard';
 import { SearchInput } from '../components/atoms/SearchInput';
 import { FilterChip } from '../components/atoms/FilterChip';
-import { Plus, UserX, UserCheck, Trash2, Edit, FolderKanban, ShieldCheck, Users, UserCog } from 'lucide-react';
+import {
+  Plus,
+  UserX,
+  UserCheck,
+  Trash2,
+  Edit,
+  FolderKanban,
+  ShieldCheck,
+  Users,
+  UserCog,
+} from 'lucide-react';
 import type { User, UserRole } from '../../../shared/types';
 
 export const UserManagementPage: React.FC = () => {
@@ -33,6 +43,7 @@ export const UserManagementPage: React.FC = () => {
   const activeUsersCount = users.filter(u => u.status === 'active').length;
   const adminCount = users.filter(u => u.roles.includes('admin')).length;
   const authorCount = users.filter(u => u.roles.includes('author')).length;
+  const devCount = users.filter(u => u.roles.includes('developer')).length;
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,26 +100,26 @@ export const UserManagementPage: React.FC = () => {
       <HeaderBar
         kicker="Governance & Access Control"
         title="User Management"
-        subtitle="Manage team accounts, role-based permissions, and workspace project assignments."
+        subtitle="Manage team accounts, role-based access control, and workspace project assignments."
         actions={
           <Button onClick={() => setIsCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
-            Add User
+            Add Team Member
           </Button>
         }
       />
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Active Users"
           value={activeUsersCount}
           subtitle={`${users.length - activeUsersCount} disabled`}
-          icon={<Users className="w-4 h-4" />}
-          delta="Authenticated"
+          icon={<Users className="w-4 h-4 text-action-primary" />}
+          delta="100% Active"
           deltaType="positive"
         />
         <StatCard
-          title="System Administrators"
+          title="System Admins"
           value={adminCount}
           subtitle="Full governance rights"
           icon={<ShieldCheck className="w-4 h-4 text-brand-coral" />}
@@ -119,21 +130,29 @@ export const UserManagementPage: React.FC = () => {
           title="Prompt Authors"
           value={authorCount}
           subtitle="Pipeline & Schema Creators"
-          icon={<UserCog className="w-4 h-4 text-action-primary" />}
-          delta="Active Creators"
+          icon={<UserCog className="w-4 h-4 text-action-accent" />}
+          delta="Active Authors"
+          deltaType="positive"
+        />
+        <StatCard
+          title="Integration Devs"
+          value={devCount}
+          subtitle="Workspace Consumers"
+          icon={<FolderKanban className="w-4 h-4 text-brand-blue" />}
+          delta="Developers"
           deltaType="positive"
         />
       </div>
 
       {/* Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface rounded-level2 border border-surface-border shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface rounded-level2 border border-surface-border shadow-xs">
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Filter users by name or email..."
+          placeholder="Filter team members by name or email..."
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <FilterChip
             label="All Roles"
             count={users.length}
@@ -154,7 +173,7 @@ export const UserManagementPage: React.FC = () => {
           />
           <FilterChip
             label="Developer"
-            count={users.filter(u => u.roles.includes('developer')).length}
+            count={devCount}
             active={roleFilter === 'developer'}
             onClick={() => setRoleFilter('developer')}
           />
@@ -162,101 +181,144 @@ export const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="rounded-level2 border border-surface-border bg-surface overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-surface-border bg-surface-hover/50 text-ink-muted uppercase font-bold text-[10px] tracking-wider">
-              <th className="py-3.5 px-4">User</th>
-              <th className="py-3.5 px-4">Roles</th>
-              <th className="py-3.5 px-4">Assigned Projects</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4">Last Login</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-border">
-            {filteredUsers.map(user => {
-              const assignedProjs = projects.filter(p => user.projectIds.includes(p.id));
-              return (
-                <tr key={user.id} className="hover:bg-surface-hover/30 transition-colors">
-                  <td className="py-3.5 px-4">
-                    <div className="font-bold text-ink-primary">{user.name}</div>
-                    <div className="text-[11px] text-ink-muted font-mono">{user.email}</div>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {user.roles.map(role => (
-                        <span
-                          key={role}
-                          className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-navy/5 dark:bg-white/5 border border-brand-navy/15 dark:border-white/15 text-brand-navy dark:text-action-primary"
-                        >
-                          {role}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {assignedProjs.length === 0 ? (
-                        <span className="text-ink-muted text-[11px]">None</span>
-                      ) : (
-                        assignedProjs.map(p => (
-                          <span
-                            key={p.id}
-                            className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-action-primary/5 text-ink-secondary border border-action-primary/20"
-                          >
-                            <FolderKanban className="w-2.5 h-2.5 text-action-primary" />
-                            {p.name}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <StatusBadge status={user.status} />
-                  </td>
-
-                  <td className="py-3.5 px-4 text-ink-muted text-[11px] font-mono">
-                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => handleOpenEdit(user)}
-                        className="p-1.5 rounded-level1 text-ink-muted hover:text-ink-primary hover:bg-surface-hover"
-                        title="Edit Roles & Projects"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(user)}
-                        className={`p-1.5 rounded-level1 hover:bg-surface-hover ${
-                          user.status === 'active'
-                            ? 'text-status-warning-text'
-                            : 'text-status-success-text'
-                        }`}
-                        title={user.status === 'active' ? 'Disable Account' : 'Enable Account'}
-                      >
-                        {user.status === 'active' ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user)}
-                        className="p-1.5 rounded-level1 text-ink-muted hover:text-status-error-text hover:bg-status-error/10"
-                        title="Delete User"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+      <div className="bg-surface rounded-level2 border border-surface-border shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-surface-hover/80 border-b border-surface-border text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                <th className="py-3 px-4">User & Contact</th>
+                <th className="py-3 px-4">Assigned Roles</th>
+                <th className="py-3 px-4">Workspace Assignments</th>
+                <th className="py-3 px-4">Account Status</th>
+                <th className="py-3 px-4">Last Activity</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-ink-muted">
+                    <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-ink-muted" />
+                    <p className="font-semibold">No team members match the search criteria</p>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ) : (
+                filteredUsers.map(user => {
+                  const assignedProjs = projects.filter(p => user.projectIds.includes(p.id));
+                  const initials = user.name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase();
+
+                  return (
+                    <tr key={user.id} className="hover:bg-surface-hover/50 transition-colors">
+                      {/* Name, Avatar & Email */}
+                      <td className="py-3.5 px-4 min-w-[200px]">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-level1 bg-brand-navy dark:bg-seic-blue text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-ink-primary text-sm">{user.name}</div>
+                            <div className="text-[11px] text-ink-muted font-mono">{user.email}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Roles */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles.map(role => (
+                            <span
+                              key={role}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                role === 'admin'
+                                  ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/20'
+                                  : role === 'author'
+                                  ? 'bg-action-accent/10 text-action-accent border-action-accent/20'
+                                  : 'bg-action-primary/10 text-action-primary border-action-primary/20'
+                              }`}
+                            >
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+
+                      {/* Assigned Projects */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap gap-1 max-w-[240px]">
+                          {assignedProjs.length === 0 ? (
+                            <span className="text-ink-muted text-[11px] italic">No projects assigned</span>
+                          ) : (
+                            assignedProjs.map(p => (
+                              <span
+                                key={p.id}
+                                className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-surface-hover text-ink-secondary border border-surface-border truncate max-w-[140px]"
+                                title={p.name}
+                              >
+                                <FolderKanban className="w-2.5 h-2.5 text-action-primary" />
+                                <span className="truncate">{p.name}</span>
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4">
+                        <StatusBadge status={user.status} />
+                      </td>
+
+                      {/* Last Activity */}
+                      <td className="py-3.5 px-4 text-ink-muted font-mono text-[11px] whitespace-nowrap">
+                        {user.lastLoginAt ? user.lastLoginAt.split('T')[0] : 'Never'}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEdit(user)}
+                            className="p-1.5 rounded-level1 text-ink-secondary hover:text-ink-primary hover:bg-surface-hover border border-surface-border transition-colors"
+                            title="Edit Roles & Projects"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => handleToggleStatus(user)}
+                            className={`p-1.5 rounded-level1 border border-surface-border hover:bg-surface-hover transition-colors ${
+                              user.status === 'active'
+                                ? 'text-status-warning-text'
+                                : 'text-status-success-text'
+                            }`}
+                            title={user.status === 'active' ? 'Disable User' : 'Enable User'}
+                          >
+                            {user.status === 'active' ? (
+                              <UserX className="w-3.5 h-3.5" />
+                            ) : (
+                              <UserCheck className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(user)}
+                            className="p-1.5 rounded-level1 text-ink-muted hover:text-status-error hover:bg-status-error/10 border border-transparent transition-colors"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Create User Modal */}
@@ -264,85 +326,87 @@ export const UserManagementPage: React.FC = () => {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         title="Add Team Member"
-        description="Invite a new user with specific role permissions and project access."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} disabled={!name.trim() || !email.trim()}>
-              Create User
-            </Button>
-          </>
-        }
+        subtitle="Invite a new user, assign RBAC permissions, and attach project workspaces."
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
               Full Name *
             </label>
             <input
               type="text"
               required
+              placeholder="e.g. Jordan Miller"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Rachel Adams"
-              className="w-full px-3.5 py-2 text-xs rounded-level1 border border-input bg-surface text-ink-primary focus:outline-none focus:ring-1 focus:ring-focus"
+              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
               Email Address *
             </label>
             <input
               type="email"
               required
+              placeholder="jordan.miller@seic.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="rachel.adams@seic.com"
-              className="w-full px-3.5 py-2 text-xs rounded-level1 border border-input bg-surface text-ink-primary focus:outline-none focus:ring-1 focus:ring-focus"
+              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Roles
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+              Assigned Roles *
             </label>
-            <div className="space-y-1.5">
-              {allRoles.map(r => (
-                <label
-                  key={r.id}
-                  className="flex items-center gap-2 p-2 rounded-level1 border border-surface-border hover:bg-surface-hover cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedRoles.includes(r.id)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setSelectedRoles([...selectedRoles, r.id]);
-                      } else {
-                        setSelectedRoles(selectedRoles.filter(role => role !== r.id));
-                      }
-                    }}
-                    className="rounded border-input text-action-primary focus:ring-focus"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-ink-primary">{r.label}</span>
-                    <span className="text-[11px] text-ink-muted ml-2">{r.desc}</span>
-                  </div>
-                </label>
-              ))}
+            <div className="space-y-2">
+              {allRoles.map(r => {
+                const isSelected = selectedRoles.includes(r.id);
+                return (
+                  <label
+                    key={r.id}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-level1 border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-action-primary/10 border-action-primary'
+                        : 'border-surface-border hover:bg-surface-hover'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setSelectedRoles([...selectedRoles, r.id]);
+                        } else {
+                          if (selectedRoles.length > 1) {
+                            setSelectedRoles(selectedRoles.filter(id => id !== r.id));
+                          }
+                        }
+                      }}
+                      className="mt-0.5 rounded border-surface-border text-action-primary focus:ring-focus"
+                    />
+                    <div>
+                      <div className="font-bold text-xs text-ink-primary">{r.label}</div>
+                      <div className="text-[11px] text-ink-muted">{r.desc}</div>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Project Assignments
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+              Assign Projects
             </label>
-            <div className="max-h-36 overflow-y-auto space-y-1 border border-surface-border rounded-level1 p-2">
+            <div className="space-y-1.5 max-h-36 overflow-y-auto border border-surface-border rounded-level1 p-2 bg-surface-hover/30">
               {projects.map(p => (
-                <label key={p.id} className="flex items-center gap-2 p-1 text-xs cursor-pointer">
+                <label
+                  key={p.id}
+                  className="flex items-center gap-2 p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
+                >
                   <input
                     type="checkbox"
                     checked={selectedProjects.includes(p.id)}
@@ -350,15 +414,24 @@ export const UserManagementPage: React.FC = () => {
                       if (e.target.checked) {
                         setSelectedProjects([...selectedProjects, p.id]);
                       } else {
-                        setSelectedProjects(selectedProjects.filter(pid => pid !== p.id));
+                        setSelectedProjects(selectedProjects.filter(id => id !== p.id));
                       }
                     }}
-                    className="rounded border-input text-action-primary focus:ring-focus"
+                    className="rounded border-surface-border text-action-primary focus:ring-focus"
                   />
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium text-ink-primary">{p.name}</span>
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+            <Button variant="secondary" onClick={() => setIsCreateOpen(false)} type="button">
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Add User
+            </Button>
           </div>
         </form>
       </Modal>
@@ -367,76 +440,86 @@ export const UserManagementPage: React.FC = () => {
       <Modal
         isOpen={!!editingUser}
         onClose={() => setEditingUser(null)}
-        title={`Edit User: ${editingUser?.name}`}
-        description="Update roles and assigned project associations."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setEditingUser(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit}>Save Changes</Button>
-          </>
-        }
+        title="Edit User Permissions"
+        subtitle={`Update roles and project access for ${editingUser?.name}.`}
       >
         <form onSubmit={handleSaveEdit} className="space-y-4">
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Full Name
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+              Full Name *
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3.5 py-2 text-xs rounded-level1 border border-input bg-surface text-ink-primary"
+              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Email Address
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+              Email Address *
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2 text-xs rounded-level1 border border-input bg-surface text-ink-primary"
+              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Roles
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+              Assigned Roles *
             </label>
-            <div className="space-y-1.5">
-              {allRoles.map(r => (
-                <label key={r.id} className="flex items-center gap-2 p-2 rounded-level1 border border-surface-border cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedRoles.includes(r.id)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setSelectedRoles([...selectedRoles, r.id]);
-                      } else {
-                        setSelectedRoles(selectedRoles.filter(role => role !== r.id));
-                      }
-                    }}
-                    className="rounded border-input text-action-primary focus:ring-focus"
-                  />
-                  <span className="text-xs font-bold text-ink-primary">{r.label}</span>
-                </label>
-              ))}
+            <div className="space-y-2">
+              {allRoles.map(r => {
+                const isSelected = selectedRoles.includes(r.id);
+                return (
+                  <label
+                    key={r.id}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-level1 border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-action-primary/10 border-action-primary'
+                        : 'border-surface-border hover:bg-surface-hover'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setSelectedRoles([...selectedRoles, r.id]);
+                        } else {
+                          if (selectedRoles.length > 1) {
+                            setSelectedRoles(selectedRoles.filter(id => id !== r.id));
+                          }
+                        }
+                      }}
+                      className="mt-0.5 rounded border-surface-border text-action-primary focus:ring-focus"
+                    />
+                    <div>
+                      <div className="font-bold text-xs text-ink-primary">{r.label}</div>
+                      <div className="text-[11px] text-ink-muted">{r.desc}</div>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-primary mb-1.5">
-              Assigned Projects
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+              Project Assignments
             </label>
-            <div className="max-h-36 overflow-y-auto space-y-1 border border-surface-border rounded-level1 p-2">
+            <div className="space-y-1.5 max-h-36 overflow-y-auto border border-surface-border rounded-level1 p-2 bg-surface-hover/30">
               {projects.map(p => (
-                <label key={p.id} className="flex items-center gap-2 p-1 text-xs cursor-pointer">
+                <label
+                  key={p.id}
+                  className="flex items-center gap-2 p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
+                >
                   <input
                     type="checkbox"
                     checked={selectedProjects.includes(p.id)}
@@ -444,15 +527,24 @@ export const UserManagementPage: React.FC = () => {
                       if (e.target.checked) {
                         setSelectedProjects([...selectedProjects, p.id]);
                       } else {
-                        setSelectedProjects(selectedProjects.filter(pid => pid !== p.id));
+                        setSelectedProjects(selectedProjects.filter(id => id !== p.id));
                       }
                     }}
-                    className="rounded border-input text-action-primary focus:ring-focus"
+                    className="rounded border-surface-border text-action-primary focus:ring-focus"
                   />
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium text-ink-primary">{p.name}</span>
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+            <Button variant="secondary" onClick={() => setEditingUser(null)} type="button">
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Save Changes
+            </Button>
           </div>
         </form>
       </Modal>
