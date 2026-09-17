@@ -10,8 +10,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif', ...defaultTheme.fontFamily.sans],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'monospace', ...defaultTheme.fontFamily.mono],
+        display: ['"Anek Latin"', 'system-ui', 'sans-serif'],
+        headline: ['"Anek Latin"', 'system-ui', 'sans-serif'],
+        body: ['Tahoma', 'Verdana', '"Segoe UI"', 'sans-serif'],
+        sans: ['Tahoma', 'Verdana', '"Segoe UI"', ...defaultTheme.fontFamily.sans],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       colors: {
         // Stratos & DataVision Institutional Brand Palette
@@ -87,8 +90,13 @@ export default {
         level5: '48px',
       },
       boxShadow: {
-        card: 'var(--shadow-card)',
-        hover: 'var(--shadow-hover)',
+        level1: 'var(--shadow-level1)',
+        level2: 'var(--shadow-level2)',
+        level3: 'var(--shadow-level3)',
+        level4: 'var(--shadow-level4)',
+        level5: 'var(--shadow-level5)',
+        card: 'var(--shadow-level1)',
+        hover: 'var(--shadow-level3)',
       },
     },
   },

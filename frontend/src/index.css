@@ -14,7 +14,7 @@
 }
 
 :root {
-  /* Layer 1 — Brand Palette (Stratos / DataVision / SEI) */
+  /* Layer 1 — Brand Palette (Stratos / SEI) */
   --brand-navy: #082340;
   --brand-navy-dark: #041324;
   --brand-coral: #f15840;
@@ -23,6 +23,7 @@
   --brand-blue: #5f8ac7;
   --brand-black: #141414;
   --brand-grey: #5a5a5a;
+  --brand-grey-light: #94a3b8;
 
   --seic-red: #d82b2a;
   --seic-blue: #00c0f3;
@@ -35,7 +36,7 @@
   --surface: #ffffff;
   --surface-card: #ffffff;
   --surface-hover: #f1f5f9;
-  --surface-border: rgba(8, 35, 64, 0.1);
+  --surface-border: rgba(8, 35, 64, 0.08);
 
   --text-primary: #141414;
   --text-secondary: #5a5a5a;
@@ -48,13 +49,19 @@
   --action-secondary: #f15840;
   --action-accent: #00c0f3;
   --action-accent-foreground: #ffffff;
-  --focus-ring: #00c0f3;
+  --focus-ring: #082340;
 
-  --border-input: rgba(8, 35, 64, 0.18);
+  --border-input: rgba(8, 35, 64, 0.12);
   --border-emphasis: #082340;
 
-  --shadow-card: 0 1px 3px rgba(8, 35, 64, 0.06), 0 1px 2px rgba(8, 35, 64, 0.04);
-  --shadow-hover: 0 4px 6px -1px rgba(8, 35, 64, 0.1), 0 2px 4px -1px rgba(8, 35, 64, 0.06);
+  /* Stratos Navy-Tinted 5-Level Elevation Shadows */
+  --shadow-level1: 0 2px 8px rgba(8, 35, 64, 0.06);
+  --shadow-level2: 0 4px 16px rgba(8, 35, 64, 0.08);
+  --shadow-level3: 0 8px 24px rgba(8, 35, 64, 0.12);
+  --shadow-level4: 0 12px 32px rgba(8, 35, 64, 0.16);
+  --shadow-level5: 0 20px 48px rgba(8, 35, 64, 0.20);
+  --shadow-card: var(--shadow-level1);
+  --shadow-hover: var(--shadow-level3);
 
   --status-error: 224 109 83;
   --status-error-text: 224 109 83;
@@ -76,7 +83,7 @@
   --surface: #0c2038;
   --surface-card: #0c2038;
   --surface-hover: #132d4e;
-  --surface-border: rgba(255, 255, 255, 0.1);
+  --surface-border: rgba(255, 255, 255, 0.08);
 
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
@@ -91,11 +98,16 @@
   --action-accent-foreground: #082340;
   --focus-ring: #00c0f3;
 
-  --border-input: rgba(255, 255, 255, 0.18);
+  --border-input: rgba(255, 255, 255, 0.15);
   --border-emphasis: #38bdf8;
 
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-level1: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-level2: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-level3: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-level4: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-level5: 0 20px 48px rgba(0, 0, 0, 0.7);
+  --shadow-card: var(--shadow-level1);
+  --shadow-hover: var(--shadow-level3);
 
   --status-error: 248 113 113;
   --status-error-text: 248 113 113;
@@ -114,9 +126,13 @@
 body {
   background-color: var(--bg-page);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: Tahoma, Verdana, 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Anek Latin', system-ui, sans-serif;
 }

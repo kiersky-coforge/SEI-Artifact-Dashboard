@@ -16,12 +16,12 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
 }) => {
   if (!validationState) {
     return (
-      <div className="p-4 rounded-lg border border-surface-border bg-surface flex items-center justify-between">
-        <div className="flex items-center gap-2 text-ink-secondary text-sm">
-          <AlertTriangle className="w-4 h-4 text-status-pending-text" />
+      <div className="p-5 rounded-level3 border border-brand-navy/[0.08] dark:border-white/10 bg-white dark:bg-slate-900 shadow-level1 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 text-brand-grey text-xs font-semibold uppercase tracking-wide">
+          <AlertTriangle className="w-4 h-4 text-brand-coral" />
           <span>Artifact has not been validated yet.</span>
         </div>
-        <Button size="sm" variant="outline" onClick={onRevalidate} disabled={isLoading} icon={<RefreshCw className="w-3.5 h-3.5" />}>
+        <Button size="sm" variant="secondary" onClick={onRevalidate} disabled={isLoading} icon={<RefreshCw className="w-3.5 h-3.5" />}>
           Run Validation
         </Button>
       </div>
@@ -33,27 +33,27 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
   return (
     <div className="space-y-4">
       <div
-        className={`p-4 rounded-lg border flex items-center justify-between ${
+        className={`p-5 rounded-level4 border shadow-level1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
           isValid
-            ? 'bg-status-success/10 border-status-success/30'
-            : 'bg-status-error/10 border-status-error/30'
+            ? 'bg-brand-green/5 border-brand-green/20'
+            : 'bg-alert-coral/5 border-alert-coral/20'
         }`}
       >
         <div className="flex items-center gap-3">
           {isValid ? (
-            <CheckCircle2 className="w-6 h-6 text-status-success-text" />
+            <CheckCircle2 className="w-6 h-6 text-brand-green flex-shrink-0" />
           ) : (
-            <XCircle className="w-6 h-6 text-status-error-text" />
+            <XCircle className="w-6 h-6 text-alert-coral flex-shrink-0" />
           )}
           <div>
             <h4
-              className={`text-sm font-semibold ${
-                isValid ? 'text-status-success-text' : 'text-status-error-text'
+              className={`text-sm font-bold uppercase tracking-wider font-display ${
+                isValid ? 'text-brand-green' : 'text-alert-coral'
               }`}
             >
               {isValid ? 'Payload Validation Passed' : 'Payload Validation Failed'}
             </h4>
-            <p className="text-xs text-ink-secondary mt-0.5">
+            <p className="text-xs text-brand-grey mt-0.5 font-medium">
               {isValid
                 ? 'All prompt stages, JSON schema definitions, and example arrays conform to required syntax.'
                 : `${errors.length} error(s) must be resolved before publishing.`}
@@ -63,13 +63,13 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
 
         <div className="flex items-center gap-3">
           {lastValidatedAt && (
-            <span className="text-xs text-ink-muted">
+            <span className="text-[10px] font-mono text-brand-grey tabular-nums">
               Checked {new Date(lastValidatedAt).toLocaleTimeString()}
             </span>
           )}
           <Button
             size="sm"
-            variant="outline"
+            variant="secondary"
             onClick={onRevalidate}
             disabled={isLoading}
             icon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
@@ -80,14 +80,14 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
       </div>
 
       {errors.length > 0 && (
-        <div className="p-4 rounded-lg border border-status-error/30 bg-status-error/5 space-y-2">
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-status-error-text flex items-center gap-1.5">
+        <div className="p-5 rounded-level4 border border-alert-coral/25 bg-alert-coral/5 space-y-2">
+          <h5 className="text-xs font-bold uppercase tracking-widest text-alert-coral flex items-center gap-1.5 font-display">
             <XCircle className="w-4 h-4" /> Errors ({errors.length})
           </h5>
           <ul className="space-y-1.5">
             {errors.map((err, idx) => (
-              <li key={idx} className="text-xs text-ink-primary flex items-start gap-2">
-                <span className="font-mono text-status-error-text font-semibold uppercase shrink-0">
+              <li key={idx} className="text-xs text-brand-black dark:text-white flex items-start gap-2">
+                <span className="font-mono text-alert-coral font-bold uppercase shrink-0">
                   [{err.field}]
                 </span>
                 <span>{err.message}</span>
@@ -98,14 +98,16 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
       )}
 
       {warnings.length > 0 && (
-        <div className="p-4 rounded-lg border border-status-warning/40 bg-status-warning/10 space-y-2">
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-status-warning-text flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4" /> Best Practice Advisories ({warnings.length})
+        <div className="p-5 rounded-level4 border border-amber-500/25 bg-amber-500/5 space-y-2">
+          <h5 className="text-xs font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1.5 font-display">
+            <AlertTriangle className="w-4 h-4" /> Warnings ({warnings.length})
           </h5>
           <ul className="space-y-1.5">
             {warnings.map((warn, idx) => (
-              <li key={idx} className="text-xs text-ink-secondary flex items-start gap-2">
-                <span className="text-status-warning-text">•</span>
+              <li key={idx} className="text-xs text-brand-black dark:text-white flex items-start gap-2">
+                <span className="font-mono text-amber-700 dark:text-amber-400 font-bold uppercase shrink-0">
+                  [WARNING]
+                </span>
                 <span>{warn}</span>
               </li>
             ))}

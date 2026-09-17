@@ -1,62 +1,41 @@
 import React from 'react';
-import { X } from 'lucide-react';
 
 interface FilterChipProps {
   label: string;
-  active?: boolean;
   count?: number;
+  active?: boolean;
+  onClick: () => void;
   icon?: React.ReactNode;
-  removable?: boolean;
-  onClick?: () => void;
-  onRemove?: () => void;
-  className?: string;
 }
 
 export const FilterChip: React.FC<FilterChipProps> = ({
   label,
-  active = false,
   count,
-  icon,
-  removable = false,
+  active = false,
   onClick,
-  onRemove,
-  className = '',
+  icon,
 }) => {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer select-none ${
+      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
         active
-          ? 'bg-brand-navy dark:bg-action-primary text-white border-brand-navy dark:border-action-primary shadow-sm'
-          : 'bg-surface text-ink-secondary border-surface-border hover:border-emphasis hover:text-ink-primary'
-      } ${className}`}
+          ? 'bg-brand-navy text-white shadow-level1'
+          : 'bg-white dark:bg-slate-800 text-brand-grey border border-brand-navy/10 dark:border-white/10 hover:border-brand-navy/30 hover:text-brand-navy dark:hover:text-white'
+      }`}
     >
-      {icon && <span className="shrink-0">{icon}</span>}
+      {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{label}</span>
-
-      {count !== undefined && count > 0 && (
+      {count !== undefined && (
         <span
-          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+          className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
             active
-              ? 'bg-black/20 text-white'
-              : 'bg-brand-navy/10 dark:bg-white/10 text-brand-navy dark:text-action-primary'
+              ? 'bg-white/20 text-white'
+              : 'bg-brand-navy/[0.05] dark:bg-white/10 text-brand-grey'
           }`}
         >
           {count}
-        </span>
-      )}
-
-      {removable && (
-        <span
-          onClick={e => {
-            e.stopPropagation();
-            onRemove?.();
-          }}
-          className="hover:opacity-75 transition-opacity p-0.5"
-          title="Remove filter"
-        >
-          <X className="w-3 h-3" />
         </span>
       )}
     </button>

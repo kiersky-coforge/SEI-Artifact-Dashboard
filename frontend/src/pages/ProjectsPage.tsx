@@ -39,20 +39,19 @@ export const ProjectsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
-  // Create Project Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
 
-  // Quick Link Modal State
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
   const [artifactToLink, setArtifactToLink] = useState<string>('');
 
   const filteredProjects = projects.filter(p => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase());
+      p.description.toLowerCase().includes(search.toLowerCase()) ||
+      p.id.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -107,26 +106,26 @@ export const ProjectsPage: React.FC = () => {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Bar */}
       <HeaderBar
-        kicker="SEI Workspace Command Center"
+        kicker="SEI Institutional Command Center"
         title="Projects & Pipelines"
         subtitle="Manage client workspaces, extraction workflows, and shared schema bindings."
         actions={
-          <Button onClick={() => setIsCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
+          <Button variant="coral" onClick={() => setIsCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
             Create Project
           </Button>
         }
       />
 
-      {/* Metrics Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Metrics Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title="Active Projects"
           value={activeCount}
           subtitle="Operating in production"
-          icon={<FolderKanban className="w-4 h-4 text-action-primary" />}
+          icon={<FolderKanban className="w-4 h-4" />}
           delta="100% Online"
           deltaType="positive"
         />
@@ -134,7 +133,7 @@ export const ProjectsPage: React.FC = () => {
           title="Registered Artifacts"
           value={artifacts.length}
           subtitle="Reusable prompt pipelines"
-          icon={<Cpu className="w-4 h-4 text-action-accent" />}
+          icon={<Cpu className="w-4 h-4 text-brand-coral" />}
           delta="+2 this month"
           deltaType="positive"
         />
@@ -157,7 +156,7 @@ export const ProjectsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface rounded-level2 border border-surface-border shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-level3 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <SearchInput
           value={search}
           onChange={setSearch}
@@ -184,45 +183,45 @@ export const ProjectsPage: React.FC = () => {
             onClick={() => setStatusFilter('archived')}
           />
 
-          <div className="h-4 w-px bg-surface-border mx-1" />
+          <div className="h-4 w-px bg-brand-navy/[0.08] dark:bg-white/10 mx-1" />
 
           <button
             onClick={expandAll}
-            className="text-xs px-2.5 py-1 rounded-level1 bg-surface-hover hover:bg-surface-border text-ink-secondary hover:text-ink-primary transition-colors font-medium"
+            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-level2 bg-brand-navy/[0.03] dark:bg-white/5 hover:bg-brand-navy/[0.08] text-brand-grey hover:text-brand-navy dark:hover:text-white transition-colors"
           >
             Expand All
           </button>
           <button
             onClick={collapseAll}
-            className="text-xs px-2.5 py-1 rounded-level1 bg-surface-hover hover:bg-surface-border text-ink-secondary hover:text-ink-primary transition-colors font-medium"
+            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-level2 bg-brand-navy/[0.03] dark:bg-white/5 hover:bg-brand-navy/[0.08] text-brand-grey hover:text-brand-navy dark:hover:text-white transition-colors"
           >
             Collapse All
           </button>
         </div>
       </div>
 
-      {/* Expandable Projects Table */}
-      <div className="bg-surface rounded-level2 border border-surface-border shadow-sm overflow-hidden">
+      {/* Expandable Projects Table (Stratos Table Style) */}
+      <div className="bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-surface-hover/80 border-b border-surface-border text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                <th className="py-3 px-3 w-10 text-center"></th>
-                <th className="py-3 px-4">Project & Pipeline</th>
-                <th className="py-3 px-4">Attached Artifacts</th>
-                <th className="py-3 px-4">Assigned Team</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Updated</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-brand-navy/[0.06] dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-brand-grey bg-brand-navy/[0.02] dark:bg-white/[0.02]">
+                <th className="py-3.5 px-4 w-10 text-center"></th>
+                <th className="py-3.5 px-4">Project & Pipeline</th>
+                <th className="py-3.5 px-4">Attached Artifacts</th>
+                <th className="py-3.5 px-4">Assigned Team</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Last Updated</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-border text-xs">
+            <tbody className="divide-y divide-brand-navy/[0.04] dark:divide-white/[0.04]">
               {filteredProjects.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-ink-muted">
-                    <FolderKanban className="w-8 h-8 mx-auto mb-2 opacity-40 text-ink-muted" />
-                    <p className="font-semibold">No projects match the selected criteria</p>
-                    <p className="text-xs mt-1">Try resetting search filters or create a new project</p>
+                  <td colSpan={7} className="py-12 text-center text-brand-grey">
+                    <FolderKanban className="w-8 h-8 mx-auto mb-2 opacity-40 text-brand-grey" />
+                    <p className="font-bold uppercase tracking-wide text-xs">No projects match the selected criteria</p>
+                    <p className="text-[11px] mt-1 text-brand-grey">Try resetting search filters or create a new project</p>
                   </td>
                 </tr>
               ) : (
@@ -236,45 +235,45 @@ export const ProjectsPage: React.FC = () => {
                       {/* Main Table Row */}
                       <tr
                         onClick={() => toggleRow(proj.id)}
-                        className={`hover:bg-surface-hover/50 cursor-pointer transition-colors ${
-                          isExpanded ? 'bg-surface-hover/30' : ''
+                        className={`hover:bg-brand-navy/[0.02] dark:hover:bg-white/[0.02] cursor-pointer transition-colors ${
+                          isExpanded ? 'bg-brand-navy/[0.015] dark:bg-white/[0.02]' : ''
                         }`}
                       >
-                        {/* Expand Toggle Column */}
-                        <td className="py-3.5 px-3 text-center">
+                        {/* Chevron */}
+                        <td className="py-4 px-4 text-center">
                           <button
                             type="button"
                             onClick={e => {
                               e.stopPropagation();
                               toggleRow(proj.id);
                             }}
-                            className="p-1 rounded text-ink-muted hover:text-ink-primary hover:bg-surface-hover transition-colors"
-                            title={isExpanded ? 'Collapse Details' : 'Expand Details'}
+                            className="p-1 rounded text-brand-grey hover:text-brand-navy dark:hover:text-white transition-colors"
+                            title={isExpanded ? 'Collapse' : 'Expand'}
                           >
                             {isExpanded ? (
-                              <ChevronDown className="w-4 h-4 text-action-primary" />
+                              <ChevronDown className="w-4 h-4 text-brand-navy dark:text-brand-blue" />
                             ) : (
-                              <ChevronRight className="w-4 h-4 text-ink-muted" />
+                              <ChevronRight className="w-4 h-4 text-brand-grey/60" />
                             )}
                           </button>
                         </td>
 
                         {/* Project Info */}
-                        <td className="py-3.5 px-4 min-w-[240px]">
+                        <td className="py-4 px-4 min-w-[240px]">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-level1 bg-brand-navy/5 dark:bg-white/5 border border-brand-navy/10 dark:border-white/10 flex items-center justify-center text-brand-navy dark:text-action-primary flex-shrink-0 mt-0.5">
+                            <div className="w-8 h-8 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] dark:border-white/10 flex items-center justify-center text-brand-navy dark:text-brand-blue flex-shrink-0 mt-0.5">
                               <FolderKanban className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-ink-primary text-sm hover:text-action-primary transition-colors">
+                                <span className="font-bold text-brand-black dark:text-white text-xs hover:text-brand-coral transition-colors">
                                   {proj.name}
                                 </span>
-                                <span className="font-mono text-[10px] text-ink-muted bg-surface-hover px-1.5 py-0.2 rounded border border-surface-border">
+                                <span className="font-mono text-[9px] text-brand-grey bg-brand-navy/[0.04] dark:bg-white/5 px-1.5 py-0.2 rounded border border-brand-navy/[0.06]">
                                   {proj.id}
                                 </span>
                               </div>
-                              <p className="text-xs text-ink-secondary line-clamp-1 mt-0.5">
+                              <p className="text-[11px] text-brand-grey line-clamp-1 mt-0.5 font-normal">
                                 {proj.description}
                               </p>
                             </div>
@@ -282,23 +281,23 @@ export const ProjectsPage: React.FC = () => {
                         </td>
 
                         {/* Attached Artifacts Count & Preview */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-action-primary/10 text-action-primary font-mono border border-action-primary/20">
-                              <Cpu className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-navy text-white shadow-level1 font-mono uppercase tracking-wider">
+                              <Cpu className="w-3 h-3 text-brand-coral" />
                               {linkedArts.length} {linkedArts.length === 1 ? 'Artifact' : 'Artifacts'}
                             </span>
                             {linkedArts.slice(0, 2).map(a => (
                               <span
                                 key={a.id}
-                                className="hidden lg:inline-flex text-[10px] font-mono px-2 py-0.5 rounded bg-surface-hover text-ink-muted border border-surface-border truncate max-w-[120px]"
+                                className="hidden lg:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-level1 bg-brand-navy/[0.03] dark:bg-white/5 text-brand-grey border border-brand-navy/[0.06] truncate max-w-[120px]"
                                 title={a.name}
                               >
                                 {a.name}
                               </span>
                             ))}
                             {linkedArts.length > 2 && (
-                              <span className="hidden lg:inline text-[10px] text-ink-muted font-mono">
+                              <span className="hidden lg:inline text-[10px] text-brand-grey font-mono font-bold">
                                 +{linkedArts.length - 2}
                               </span>
                             )}
@@ -306,60 +305,60 @@ export const ProjectsPage: React.FC = () => {
                         </td>
 
                         {/* Assigned Team */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-1.5">
                             <div className="flex -space-x-1.5 overflow-hidden">
                               {assignedUsers.slice(0, 3).map(u => (
                                 <div
                                   key={u.id}
                                   title={`${u.name} (${u.roles.join(', ')})`}
-                                  className="inline-block h-6 w-6 rounded-full ring-2 ring-surface bg-brand-navy dark:bg-seic-blue text-white text-[10px] font-bold flex items-center justify-center uppercase shadow-xs"
+                                  className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900 bg-brand-navy dark:bg-seic-blue text-white text-[9px] font-bold flex items-center justify-center uppercase shadow-level1"
                                 >
                                   {u.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                               ))}
                             </div>
-                            <span className="text-[11px] text-ink-secondary">
+                            <span className="text-[11px] text-brand-grey font-medium">
                               {assignedUsers.length} {assignedUsers.length === 1 ? 'member' : 'members'}
                             </span>
                           </div>
                         </td>
 
                         {/* Status */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <StatusBadge status={proj.status} />
                         </td>
 
                         {/* Updated */}
-                        <td className="py-3.5 px-4 text-ink-muted font-mono text-[11px] whitespace-nowrap">
+                        <td className="py-4 px-4 text-brand-grey font-mono text-[11px] tabular-nums whitespace-nowrap">
                           {proj.updatedAt.split('T')[0]}
                         </td>
 
                         {/* Actions */}
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <td className="py-4 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => setLinkingProjectId(proj.id)}
-                              className="p-1.5 rounded-level1 text-ink-secondary hover:text-action-primary hover:bg-surface-hover border border-surface-border transition-colors text-xs inline-flex items-center gap-1"
-                              title="Link Artifact to Project"
+                              className="px-2.5 py-1 rounded-level2 text-brand-grey hover:text-brand-navy dark:hover:text-white hover:bg-brand-navy/[0.05] border border-brand-navy/10 dark:border-white/10 transition-colors text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"
+                              title="Link Artifact"
                             >
-                              <Link2 className="w-3.5 h-3.5" />
+                              <Link2 className="w-3 h-3 text-brand-coral" />
                               <span className="hidden xl:inline">Link</span>
                             </button>
 
                             <Link
                               to={`/projects/${proj.id}`}
-                              className="p-1.5 rounded-level1 bg-action-primary text-white hover:bg-action-primary-hover transition-colors text-xs inline-flex items-center gap-1 font-semibold"
+                              className="px-3 py-1 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 transition-all text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 shadow-level1"
                             >
                               <span>Workspace</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
+                              <ArrowRight className="w-3 h-3" />
                             </Link>
 
                             <button
                               type="button"
                               onClick={e => handleDeleteProject(e, proj.id, proj.name)}
-                              className="p-1.5 rounded-level1 text-ink-muted hover:text-status-error hover:bg-status-error/10 transition-colors"
+                              className="p-1.5 rounded-level1 text-brand-grey/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors"
                               title="Delete Project"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -370,19 +369,19 @@ export const ProjectsPage: React.FC = () => {
 
                       {/* Expanded Sub-Panel Drawer */}
                       {isExpanded && (
-                        <tr className="bg-surface-hover/20 border-b border-surface-border">
-                          <td colSpan={7} className="p-4 sm:p-6">
-                            <div className="rounded-level2 bg-surface border border-surface-border p-5 space-y-5 shadow-xs">
+                        <tr className="bg-brand-navy/[0.015] dark:bg-white/[0.02] border-b border-brand-navy/[0.06] dark:border-white/10">
+                          <td colSpan={7} className="p-4 sm:p-5">
+                            <div className="rounded-level3 bg-white dark:bg-slate-900 border border-brand-navy/[0.06] dark:border-white/10 p-5 space-y-4 shadow-level1">
                               {/* Sub-Panel Header */}
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-border">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-navy/[0.06] dark:border-white/10">
                                 <div>
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-action-primary font-mono">
-                                    Project Details & Bindings
-                                  </span>
-                                  <h4 className="text-base font-bold text-ink-primary mt-0.5">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+                                    Project Workspace Bindings
+                                  </p>
+                                  <h4 className="text-xl font-bold uppercase text-brand-black dark:text-white font-display mt-0.5">
                                     {proj.name}
                                   </h4>
-                                  <p className="text-xs text-ink-secondary mt-1">
+                                  <p className="text-xs text-brand-grey mt-1">
                                     {proj.description || 'No detailed project description recorded.'}
                                   </p>
                                 </div>
@@ -390,14 +389,14 @@ export const ProjectsPage: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => setLinkingProjectId(proj.id)}
-                                    className="px-3 py-1.5 rounded-level1 bg-surface-hover hover:bg-surface-border text-ink-primary font-semibold text-xs border border-surface-border flex items-center gap-1.5 transition-colors"
+                                    className="px-3 py-1.5 rounded-level2 bg-white dark:bg-slate-800 hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-brand-navy/15 dark:border-white/15 flex items-center gap-1.5 transition-colors"
                                   >
-                                    <Link2 className="w-3.5 h-3.5 text-action-accent" />
+                                    <Link2 className="w-3.5 h-3.5 text-brand-coral" />
                                     <span>Attach Artifact</span>
                                   </button>
                                   <Link
                                     to={`/projects/${proj.id}`}
-                                    className="px-3 py-1.5 rounded-level1 bg-action-primary text-white hover:bg-action-primary-hover font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                                    className="px-3.5 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-level1"
                                   >
                                     <span>Open Full Workspace</span>
                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -407,112 +406,112 @@ export const ProjectsPage: React.FC = () => {
 
                               {/* Attached Artifacts Sub-Table */}
                               <div>
-                                <div className="flex items-center justify-between mb-2.5">
-                                  <span className="text-xs font-bold uppercase tracking-wider text-ink-primary flex items-center gap-1.5">
-                                    <Cpu className="w-3.5 h-3.5 text-action-accent" /> Attached Artifact Pipelines ({linkedArts.length})
-                                  </span>
-                                  <span className="text-[11px] text-ink-muted">
-                                    Reusable across workspaces
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey flex items-center gap-1.5">
+                                    <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
+                                  </p>
+                                  <span className="text-[10px] font-mono text-brand-grey">
+                                    Reusable Prompt Schemas
                                   </span>
                                 </div>
 
                                 {linkedArts.length === 0 ? (
-                                  <div className="p-6 rounded-level1 bg-surface-hover/50 border border-dashed border-surface-border text-center space-y-2">
-                                    <Cpu className="w-6 h-6 mx-auto text-ink-muted opacity-50" />
-                                    <p className="text-xs font-semibold text-ink-secondary">
+                                  <div className="p-6 rounded-level2 bg-brand-navy/[0.02] dark:bg-white/[0.02] border border-dashed border-brand-navy/[0.1] text-center space-y-2">
+                                    <Cpu className="w-6 h-6 mx-auto text-brand-grey opacity-50" />
+                                    <p className="text-xs font-bold text-brand-grey uppercase tracking-wide">
                                       No prompt pipelines currently linked to this project
                                     </p>
                                     <button
                                       onClick={() => setLinkingProjectId(proj.id)}
-                                      className="text-xs text-action-primary font-bold hover:underline inline-flex items-center gap-1"
+                                      className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1"
                                     >
                                       <Plus className="w-3.5 h-3.5" /> Link existing artifact now
                                     </button>
                                   </div>
                                 ) : (
-                                  <div className="border border-surface-border rounded-level1 overflow-hidden">
+                                  <div className="border border-brand-navy/[0.06] dark:border-white/10 rounded-level3 overflow-hidden">
                                     <table className="w-full text-left border-collapse text-xs">
                                       <thead>
-                                        <tr className="bg-surface-hover/60 border-b border-surface-border text-[10px] font-bold uppercase text-ink-muted tracking-wider">
-                                          <th className="py-2 px-3">Artifact Pipeline</th>
-                                          <th className="py-2 px-3">Stage Coverage</th>
-                                          <th className="py-2 px-3">Status</th>
-                                          <th className="py-2 px-3">Active Version</th>
-                                          <th className="py-2 px-3">Validation Health</th>
-                                          <th className="py-2 px-3 text-right">Actions</th>
+                                        <tr className="bg-brand-navy/[0.02] dark:bg-white/[0.02] border-b border-brand-navy/[0.06] dark:border-white/10 text-[10px] font-bold uppercase text-brand-grey tracking-widest">
+                                          <th className="py-2.5 px-4">Artifact Pipeline</th>
+                                          <th className="py-2.5 px-4">Stage Coverage</th>
+                                          <th className="py-2.5 px-4">Status</th>
+                                          <th className="py-2.5 px-4">Active Version</th>
+                                          <th className="py-2.5 px-4">Validation Health</th>
+                                          <th className="py-2.5 px-4 text-right">Actions</th>
                                         </tr>
                                       </thead>
-                                      <tbody className="divide-y divide-surface-border">
+                                      <tbody className="divide-y divide-brand-navy/[0.04] dark:divide-white/[0.04]">
                                         {linkedArts.map(art => {
                                           return (
-                                            <tr key={art.id} className="hover:bg-surface-hover/30">
-                                              <td className="py-2.5 px-3">
-                                                <div className="font-semibold text-ink-primary">
+                                            <tr key={art.id} className="hover:bg-brand-navy/[0.02]">
+                                              <td className="py-3 px-4">
+                                                <div className="font-bold text-brand-black dark:text-white">
                                                   {art.name}
                                                 </div>
-                                                <div className="text-[11px] text-ink-muted line-clamp-1">
+                                                <div className="text-[10px] text-brand-grey line-clamp-1 font-normal">
                                                   {art.description}
                                                 </div>
                                               </td>
 
-                                              <td className="py-2.5 px-3">
-                                                <div className="flex items-center gap-1 font-mono text-[10px]">
+                                              <td className="py-3 px-4">
+                                                <div className="flex items-center gap-1 font-mono text-[9px]">
                                                   <span
-                                                    className={`px-1.5 py-0.2 rounded border ${
+                                                    className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                                                       art.stage1Prompt
-                                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                                        : 'bg-surface-hover text-ink-muted border-surface-border'
+                                                        ? 'bg-brand-green/10 text-brand-green'
+                                                        : 'bg-brand-navy/[0.04] text-brand-grey'
                                                     }`}
                                                   >
                                                     Stage 1
                                                   </span>
                                                   <span
-                                                    className={`px-1.5 py-0.2 rounded border ${
+                                                    className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                                                       art.stage2Prompt
-                                                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                                                        : 'bg-surface-hover text-ink-muted border-surface-border'
+                                                        ? 'bg-brand-blue/10 text-brand-blue'
+                                                        : 'bg-brand-navy/[0.04] text-brand-grey'
                                                     }`}
                                                   >
                                                     Stage 2
                                                   </span>
                                                   <span
-                                                    className={`px-1.5 py-0.2 rounded border ${
+                                                    className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                                                       art.jsonSchema
-                                                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-                                                        : 'bg-surface-hover text-ink-muted border-surface-border'
+                                                        ? 'bg-brand-coral/10 text-brand-coral'
+                                                        : 'bg-brand-navy/[0.04] text-brand-grey'
                                                     }`}
                                                   >
-                                                    JSON Schema
+                                                    Schema
                                                   </span>
                                                 </div>
                                               </td>
 
-                                              <td className="py-2.5 px-3">
+                                              <td className="py-3 px-4">
                                                 <StatusBadge status={art.status} />
                                               </td>
 
-                                              <td className="py-2.5 px-3 font-mono text-[11px] font-bold text-ink-primary">
+                                              <td className="py-3 px-4 font-mono text-[11px] font-bold text-brand-navy dark:text-brand-blue tabular-nums">
                                                 {art.currentVersion}
                                               </td>
 
-                                              <td className="py-2.5 px-3">
-                                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold font-mono">
+                                              <td className="py-3 px-4">
+                                                <span className="inline-flex items-center gap-1 text-[10px] text-brand-green font-bold font-mono uppercase tracking-wider">
                                                   <CheckCircle2 className="w-3.5 h-3.5" /> 100% Valid
                                                 </span>
                                               </td>
 
-                                              <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                                              <td className="py-3 px-4 text-right whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-1.5">
                                                   <Link
                                                     to={`/artifacts/${art.id}`}
-                                                    className="px-2 py-1 rounded bg-surface-hover hover:bg-action-primary hover:text-white text-ink-primary font-semibold text-xs border border-surface-border transition-colors inline-flex items-center gap-1"
+                                                    className="px-2.5 py-1 rounded-level2 bg-brand-navy/[0.04] hover:bg-brand-navy hover:text-white text-brand-navy dark:text-white font-bold text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1"
                                                   >
                                                     <span>Open Hub</span>
                                                     <ExternalLink className="w-3 h-3" />
                                                   </Link>
                                                   <button
                                                     onClick={() => unlinkArtifactFromProject(proj.id, art.id)}
-                                                    className="p-1 rounded text-ink-muted hover:text-status-error hover:bg-status-error/10 transition-colors"
+                                                    className="p-1 rounded text-brand-grey/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors"
                                                     title="Unlink Artifact from Project"
                                                   >
                                                     <Unlink className="w-3.5 h-3.5" />
@@ -529,23 +528,23 @@ export const ProjectsPage: React.FC = () => {
                               </div>
 
                               {/* Assigned Team Members Row */}
-                              <div className="pt-2 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                              <div className="pt-2 border-t border-brand-navy/[0.06] dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-ink-muted uppercase tracking-wider text-[10px]">
+                                  <span className="font-bold text-brand-grey uppercase tracking-widest text-[10px]">
                                     Assigned Roster:
                                   </span>
                                   {assignedUsers.map(u => (
                                     <span
                                       key={u.id}
-                                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-hover border border-surface-border text-ink-primary font-medium"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-brand-black dark:text-white font-bold text-[10px] uppercase tracking-wider"
                                     >
-                                      <span className="w-2 h-2 rounded-full bg-action-primary" />
+                                      <span className="w-2 h-2 rounded-full bg-brand-navy dark:bg-seic-blue" />
                                       {u.name}
-                                      <span className="text-[10px] text-ink-muted">({u.roles.join(', ')})</span>
+                                      <span className="text-[9px] text-brand-grey">({u.roles.join(', ')})</span>
                                     </span>
                                   ))}
                                 </div>
-                                <span className="text-[11px] text-ink-muted font-mono">
+                                <span className="text-[10px] text-brand-grey font-mono tabular-nums">
                                   Created: {proj.createdAt.split('T')[0]}
                                 </span>
                               </div>
@@ -571,7 +570,7 @@ export const ProjectsPage: React.FC = () => {
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Project Name *
             </label>
             <input
@@ -580,12 +579,12 @@ export const ProjectsPage: React.FC = () => {
               placeholder="e.g. Schedule K-1 Tax Parsing"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Description
             </label>
             <textarea
@@ -593,22 +592,22 @@ export const ProjectsPage: React.FC = () => {
               placeholder="Describe the business domain, client requirements, or processing target..."
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1.5">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1.5">
               Attach Initial Artifacts (Optional)
             </label>
-            <div className="space-y-1.5 max-h-44 overflow-y-auto border border-surface-border rounded-level1 p-2 bg-surface-hover/30">
+            <div className="space-y-1.5 max-h-44 overflow-y-auto border border-brand-navy/[0.08] dark:border-white/10 rounded-level2 p-2 bg-brand-navy/[0.02]">
               {artifacts.length === 0 ? (
-                <div className="text-xs text-ink-muted py-2 text-center">No artifacts registered yet</div>
+                <div className="text-xs text-brand-grey py-2 text-center">No artifacts registered yet</div>
               ) : (
                 artifacts.map(a => (
                   <label
                     key={a.id}
-                    className="flex items-center gap-2 p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
+                    className="flex items-center gap-2.5 p-2 rounded-level1 hover:bg-white dark:hover:bg-slate-800 cursor-pointer text-xs transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -620,11 +619,11 @@ export const ProjectsPage: React.FC = () => {
                           setSelectedArtifacts(selectedArtifacts.filter(id => id !== a.id));
                         }
                       }}
-                      className="rounded border-surface-border text-action-primary focus:ring-focus"
+                      className="rounded border-brand-navy/20 text-brand-navy focus:ring-brand-navy"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-ink-primary">{a.name}</div>
-                      <div className="text-[10px] text-ink-muted font-mono">{a.currentVersion} • {a.status}</div>
+                      <div className="font-bold text-brand-black dark:text-white">{a.name}</div>
+                      <div className="text-[10px] text-brand-grey font-mono">{a.currentVersion} • {a.status}</div>
                     </div>
                   </label>
                 ))
@@ -632,11 +631,11 @@ export const ProjectsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
             <Button variant="secondary" onClick={() => setIsCreateOpen(false)} type="button">
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
+            <Button variant="coral" type="submit">
               Create Project
             </Button>
           </div>
@@ -655,11 +654,11 @@ export const ProjectsPage: React.FC = () => {
       >
         <form onSubmit={handleLinkArtifact} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Select Artifact *
             </label>
             {unlinkedArtifacts.length === 0 ? (
-              <div className="p-4 rounded bg-surface-hover text-xs text-ink-muted text-center">
+              <div className="p-4 rounded-level2 bg-brand-navy/[0.02] text-xs text-brand-grey text-center font-semibold">
                 All existing artifacts are already attached to this project.
               </div>
             ) : (
@@ -667,7 +666,7 @@ export const ProjectsPage: React.FC = () => {
                 required
                 value={artifactToLink}
                 onChange={e => setArtifactToLink(e.target.value)}
-                className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+                className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
               >
                 <option value="">-- Choose an artifact --</option>
                 {unlinkedArtifacts.map(a => (
@@ -679,7 +678,7 @@ export const ProjectsPage: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
             <Button
               variant="secondary"
               onClick={() => {
@@ -690,7 +689,7 @@ export const ProjectsPage: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button variant="primary" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
+            <Button variant="coral" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
               Attach to Project
             </Button>
           </div>

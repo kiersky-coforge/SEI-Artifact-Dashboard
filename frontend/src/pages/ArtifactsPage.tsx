@@ -61,26 +61,26 @@ export const ArtifactsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header Bar */}
       <HeaderBar
         kicker="Global Schema Registry"
         title="Artifacts & Extraction Hub"
         subtitle="Repository of reusable multi-stage prompt pipelines, JSON schemas, and calibration datasets."
         actions={
-          <Button onClick={() => setIsCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
+          <Button variant="coral" onClick={() => setIsCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
             Create Artifact
           </Button>
         }
       />
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title="Published Artifacts"
           value={publishedCount}
           subtitle="Validated & production-ready"
-          icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+          icon={<CheckCircle2 className="w-4 h-4 text-brand-green" />}
           delta="100% Validated"
           deltaType="positive"
         />
@@ -88,7 +88,7 @@ export const ArtifactsPage: React.FC = () => {
           title="Draft Iterations"
           value={draftCount}
           subtitle="Work-in-progress pipelines"
-          icon={<AlertCircle className="w-4 h-4 text-amber-500" />}
+          icon={<AlertCircle className="w-4 h-4 text-brand-coral" />}
           delta="In Authoring"
           deltaType="neutral"
         />
@@ -104,14 +104,14 @@ export const ArtifactsPage: React.FC = () => {
           title="Project Associations"
           value={projects.length}
           subtitle="Target host workspaces"
-          icon={<FolderKanban className="w-4 h-4 text-action-primary" />}
+          icon={<FolderKanban className="w-4 h-4 text-brand-navy dark:text-brand-blue" />}
           delta="Connected"
           deltaType="positive"
         />
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface rounded-level2 border border-surface-border shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-level3 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <SearchInput
           value={search}
           onChange={setSearch}
@@ -144,12 +144,12 @@ export const ArtifactsPage: React.FC = () => {
             onClick={() => setStatusFilter('archived')}
           />
 
-          <div className="h-4 w-px bg-surface-border mx-1" />
+          <div className="h-4 w-px bg-brand-navy/[0.08] dark:bg-white/10 mx-1" />
 
           <select
             value={projectFilter}
             onChange={e => setProjectFilter(e.target.value)}
-            className="text-xs px-3 py-1.5 rounded-level1 bg-surface border border-surface-border text-ink-primary focus:outline-none focus:ring-1 focus:ring-focus font-medium"
+            className="text-xs px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-brand-navy/10 dark:border-white/15 text-brand-black dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-navy font-bold uppercase tracking-wider"
           >
             <option value="all">All Linked Projects</option>
             {projects.map(p => (
@@ -162,28 +162,28 @@ export const ArtifactsPage: React.FC = () => {
       </div>
 
       {/* Artifacts Table */}
-      <div className="bg-surface rounded-level2 border border-surface-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-surface-hover/80 border-b border-surface-border text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                <th className="py-3 px-4">Artifact Name & Pipeline</th>
-                <th className="py-3 px-4">Pipeline Stages</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Active Version</th>
-                <th className="py-3 px-4">Attached Projects</th>
-                <th className="py-3 px-4">Validation Health</th>
-                <th className="py-3 px-4">Last Updated</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="border-b border-brand-navy/[0.06] dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-brand-grey bg-brand-navy/[0.02] dark:bg-white/[0.02]">
+                <th className="py-3.5 px-4">Artifact Name & Pipeline</th>
+                <th className="py-3.5 px-4">Pipeline Stages</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Active Version</th>
+                <th className="py-3.5 px-4">Attached Projects</th>
+                <th className="py-3.5 px-4">Validation Health</th>
+                <th className="py-3.5 px-4">Last Updated</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-border text-xs">
+            <tbody className="divide-y divide-brand-navy/[0.04] dark:divide-white/[0.04]">
               {filteredArtifacts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-ink-muted">
-                    <Cpu className="w-8 h-8 mx-auto mb-2 opacity-40 text-ink-muted" />
-                    <p className="font-semibold">No artifacts found matching your criteria</p>
-                    <p className="text-xs mt-1">Try broadening your search or create a new artifact</p>
+                  <td colSpan={8} className="py-12 text-center text-brand-grey">
+                    <Cpu className="w-8 h-8 mx-auto mb-2 opacity-40 text-brand-grey" />
+                    <p className="font-bold uppercase tracking-wide text-xs">No artifacts found matching your criteria</p>
+                    <p className="text-[11px] mt-1 text-brand-grey">Try broadening your search or create a new artifact</p>
                   </td>
                 </tr>
               ) : (
@@ -193,27 +193,27 @@ export const ArtifactsPage: React.FC = () => {
                   return (
                     <tr
                       key={art.id}
-                      className="hover:bg-surface-hover/50 transition-colors group"
+                      className="hover:bg-brand-navy/[0.02] dark:hover:bg-white/[0.02] transition-colors group"
                     >
                       {/* Name & ID */}
-                      <td className="py-3.5 px-4 min-w-[220px]">
+                      <td className="py-4 px-4 min-w-[220px]">
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-level1 bg-action-accent/10 border border-action-accent/20 flex items-center justify-center text-action-accent flex-shrink-0 mt-0.5">
-                            <Cpu className="w-4 h-4" />
+                          <div className="w-8 h-8 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] dark:border-white/10 flex items-center justify-center text-brand-navy dark:text-brand-blue flex-shrink-0 mt-0.5">
+                            <Cpu className="w-4 h-4 text-brand-coral" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <Link
                                 to={`/artifacts/${art.id}`}
-                                className="font-bold text-ink-primary text-sm group-hover:text-action-primary dark:group-hover:text-action-accent transition-colors"
+                                className="font-bold text-brand-black dark:text-white text-xs group-hover:text-brand-coral transition-colors"
                               >
                                 {art.name}
                               </Link>
-                              <span className="font-mono text-[10px] text-ink-muted bg-surface-hover px-1.5 py-0.2 rounded border border-surface-border">
+                              <span className="font-mono text-[9px] text-brand-grey bg-brand-navy/[0.04] dark:bg-white/5 px-1.5 py-0.2 rounded border border-brand-navy/[0.06]">
                                 {art.id}
                               </span>
                             </div>
-                            <p className="text-xs text-ink-secondary line-clamp-1 mt-0.5">
+                            <p className="text-[11px] text-brand-grey line-clamp-1 mt-0.5 font-normal">
                               {art.description}
                             </p>
                           </div>
@@ -221,33 +221,33 @@ export const ArtifactsPage: React.FC = () => {
                       </td>
 
                       {/* Pipeline Stage Coverage */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1 font-mono text-[10px]">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-1 font-mono text-[9px]">
                           <span
-                            className={`px-1.5 py-0.5 rounded border ${
+                            className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                               art.stage1Prompt
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-semibold'
-                                : 'bg-surface-hover text-ink-muted border-surface-border'
+                                ? 'bg-brand-green/10 text-brand-green'
+                                : 'bg-brand-navy/[0.04] text-brand-grey'
                             }`}
                             title="Stage 1 Extraction Prompt"
                           >
                             Stage 1
                           </span>
                           <span
-                            className={`px-1.5 py-0.5 rounded border ${
+                            className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                               art.stage2Prompt
-                                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-semibold'
-                                : 'bg-surface-hover text-ink-muted border-surface-border'
+                                ? 'bg-brand-blue/10 text-brand-blue'
+                                : 'bg-brand-navy/[0.04] text-brand-grey'
                             }`}
                             title="Stage 2 Refinement Prompt"
                           >
                             Stage 2
                           </span>
                           <span
-                            className={`px-1.5 py-0.5 rounded border ${
+                            className={`px-1.5 py-0.5 rounded font-bold uppercase ${
                               art.jsonSchema
-                                ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 font-semibold'
-                                : 'bg-surface-hover text-ink-muted border-surface-border'
+                                ? 'bg-brand-coral/10 text-brand-coral'
+                                : 'bg-brand-navy/[0.04] text-brand-grey'
                             }`}
                             title="JSON Validation Schema"
                           >
@@ -257,31 +257,31 @@ export const ArtifactsPage: React.FC = () => {
                       </td>
 
                       {/* Status Badge */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-4 px-4">
                         <StatusBadge status={art.status} />
                       </td>
 
                       {/* Active Version */}
-                      <td className="py-3.5 px-4">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-surface-hover border border-surface-border text-ink-primary">
+                      <td className="py-4 px-4">
+                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-level1 bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-brand-black dark:text-white tabular-nums">
                           {art.currentVersion}
                         </span>
                       </td>
 
                       {/* Attached Projects */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-4 px-4">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {linkedProjects.length === 0 ? (
-                            <span className="text-[11px] text-ink-muted italic">Unassigned</span>
+                            <span className="text-[11px] text-brand-grey italic">Unassigned</span>
                           ) : (
                             linkedProjects.map(p => (
                               <Link
                                 key={p.id}
                                 to={`/projects/${p.id}`}
-                                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-surface-hover hover:bg-surface-border text-ink-secondary hover:text-ink-primary border border-surface-border transition-colors truncate max-w-[130px]"
+                                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-level1 bg-brand-navy/[0.03] dark:bg-white/5 hover:bg-brand-navy/[0.08] text-brand-black dark:text-white border border-brand-navy/[0.06] transition-colors truncate max-w-[130px]"
                                 title={p.name}
                               >
-                                <FolderKanban className="w-2.5 h-2.5 text-action-primary" />
+                                <FolderKanban className="w-2.5 h-2.5 text-brand-navy dark:text-brand-blue" />
                                 <span className="truncate">{p.name}</span>
                               </Link>
                             ))
@@ -290,32 +290,32 @@ export const ArtifactsPage: React.FC = () => {
                       </td>
 
                       {/* Validation Health */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider bg-brand-green/10 text-brand-green border border-brand-green/20">
                           <CheckCircle2 className="w-3.5 h-3.5" /> 100% Valid
                         </span>
                       </td>
 
                       {/* Updated Date */}
-                      <td className="py-3.5 px-4 text-ink-muted font-mono text-[11px] whitespace-nowrap">
+                      <td className="py-4 px-4 text-brand-grey font-mono text-[11px] tabular-nums whitespace-nowrap">
                         {art.updatedAt.split('T')[0]}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <td className="py-4 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/artifacts/${art.id}`}
-                            className="px-2.5 py-1.5 rounded-level1 bg-action-primary text-white hover:bg-action-primary-hover transition-colors font-semibold text-xs inline-flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 transition-all font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1 shadow-level1"
                           >
                             <span>Open Hub</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <ArrowRight className="w-3 h-3" />
                           </Link>
 
                           <button
                             type="button"
                             onClick={e => handleDelete(e, art.id, art.name)}
-                            className="p-1.5 rounded-level1 text-ink-muted hover:text-status-error hover:bg-status-error/10 transition-colors"
+                            className="p-1.5 rounded-level1 text-brand-grey/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors"
                             title="Delete Artifact"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -340,7 +340,7 @@ export const ArtifactsPage: React.FC = () => {
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Artifact Name *
             </label>
             <input
@@ -349,12 +349,12 @@ export const ArtifactsPage: React.FC = () => {
               placeholder="e.g. Schedule K-1 Partner Line Items"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Description
             </label>
             <textarea
@@ -362,18 +362,18 @@ export const ArtifactsPage: React.FC = () => {
               placeholder="Describe the extraction target, data normalization goals, and required output structure..."
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-primary mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
               Bind to Initial Project (Optional)
             </label>
             <select
               value={initialProject}
               onChange={e => setInitialProject(e.target.value)}
-              className="w-full px-3 py-2 rounded-level1 bg-surface border border-surface-border text-ink-primary text-xs focus:outline-none focus:ring-2 focus:ring-focus font-medium"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             >
               <option value="">-- Standalone (No project assigned yet) --</option>
               {projects.map(p => (
@@ -384,11 +384,11 @@ export const ArtifactsPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
             <Button variant="secondary" onClick={() => setIsCreateOpen(false)} type="button">
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
+            <Button variant="coral" type="submit">
               Create Artifact
             </Button>
           </div>

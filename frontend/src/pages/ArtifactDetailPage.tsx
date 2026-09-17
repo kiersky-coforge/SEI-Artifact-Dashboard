@@ -6,6 +6,8 @@ import { StatusBadge } from '../components/atoms/StatusBadge';
 import { PromptEditor } from '../components/molecules/PromptEditor';
 import { ValidationSummary } from '../components/molecules/ValidationSummary';
 import { Modal } from '../components/molecules/Modal';
+import { HeaderBar } from '../components/molecules/HeaderBar';
+import { StatCard } from '../components/molecules/StatCard';
 import {
   ArrowLeft,
   Save,
@@ -22,6 +24,7 @@ import {
   Eye,
   Link2,
   Unlink,
+  Check,
 } from 'lucide-react';
 import type { ArtifactVersionSnapshot } from '../../../shared/types';
 
@@ -69,8 +72,8 @@ export const ArtifactDetailPage: React.FC = () => {
   if (!artifact) {
     return (
       <div className="p-12 text-center">
-        <h2 className="text-lg font-bold text-ink-primary">Artifact Not Found</h2>
-        <Link to="/artifacts" className="text-xs text-action-primary hover:underline mt-2 inline-block">
+        <h2 className="text-xl font-bold uppercase text-brand-black dark:text-white font-display">Artifact Not Found</h2>
+        <Link to="/artifacts" className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline mt-2 inline-block">
           Return to Artifact Library
         </Link>
       </div>
@@ -123,8 +126,8 @@ export const ArtifactDetailPage: React.FC = () => {
 
   const handleAddExample = () => {
     const newEx = {
-      inputRaw: 'Example input text from document...',
-      outputNormalized: { exampleKey: 'exampleValue' },
+      inputRaw: 'Example document excerpt for calibration...',
+      outputNormalized: { commitmentAmount: 5000000, currency: 'USD' },
     };
     setFewShotExamples([...fewShotExamples, newEx]);
   };
@@ -148,532 +151,546 @@ export const ArtifactDetailPage: React.FC = () => {
     }
   };
 
+  const detailTabs = [
+    { id: 'overview', label: 'Overview', icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: 'editor', label: 'Pipeline Editor', icon: <FileCode className="w-3.5 h-3.5" /> },
+    { id: 'versions', label: `Versions (${artifact.versions?.length || 0})`, icon: <History className="w-3.5 h-3.5" /> },
+    { id: 'validation', label: 'Schema Validation', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4">
+      {/* Top back navigation */}
+      <div className="flex items-center justify-between">
         <Link
           to="/artifacts"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary hover:text-ink-primary transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-grey hover:text-brand-navy dark:hover:text-white transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Artifact Library
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Artifacts
         </Link>
-
-        <div className="flex items-center gap-2">
-          {isSavedAlert && (
-            <span className="text-xs text-status-success-text font-semibold flex items-center gap-1 animate-in fade-in">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Draft Saved
-            </span>
-          )}
-          <Button variant="outline" size="sm" onClick={handleSaveDraft} icon={<Save className="w-3.5 h-3.5" />}>
-            Save Draft
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setIsPublishModalOpen(true)}
-            icon={<Send className="w-3.5 h-3.5" />}
-          >
-            Publish New Version
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDelete}
+          className="text-alert-coral hover:bg-alert-coral/10"
+          icon={<Trash2 className="w-3.5 h-3.5" />}
+        >
+          Delete Artifact
+        </Button>
       </div>
 
-      {/* Artifact Header Banner */}
-      <div className="p-6 rounded-lg border border-surface-border bg-surface space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-ink-primary tracking-tight">{artifact.name}</h1>
-              <span className="font-mono text-xs px-2.5 py-1 rounded bg-surface-hover border border-surface-border text-ink-primary font-bold">
-                {artifact.currentVersion}
-              </span>
-              <StatusBadge status={artifact.status} />
-            </div>
-            <p className="text-xs text-ink-secondary mt-1">{artifact.description}</p>
+      {/* Header Bar */}
+      <HeaderBar
+        kicker="Schema & Prompt Hub"
+        title={artifact.name}
+        subtitle={artifact.description}
+        badge={
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-level1 bg-brand-navy text-white shadow-level1 tabular-nums">
+              {artifact.currentVersion}
+            </span>
+            <StatusBadge status={artifact.status} />
           </div>
+        }
+        actions={
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
-              onClick={handleDelete}
-              className="text-status-error-text hover:bg-status-error/10"
-              icon={<Trash2 className="w-3.5 h-3.5" />}
+              onClick={handleSaveDraft}
+              icon={<Save className="w-3.5 h-3.5 text-brand-coral" />}
             >
-              Delete
+              Save Draft
+            </Button>
+            <Button
+              variant="coral"
+              size="sm"
+              onClick={() => setIsPublishModalOpen(true)}
+              icon={<Send className="w-3.5 h-3.5" />}
+            >
+              Publish Release
             </Button>
           </div>
-        </div>
+        }
+      />
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-surface-border gap-2 pt-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'overview'
-                ? 'border-action-primary text-action-primary'
-                : 'border-transparent text-ink-secondary hover:text-ink-primary'
-            }`}
-          >
-            <Layers className="w-4 h-4" /> Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('editor')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'editor'
-                ? 'border-action-primary text-action-primary'
-                : 'border-transparent text-ink-secondary hover:text-ink-primary'
-            }`}
-          >
-            <FileCode className="w-4 h-4" /> Editor (Prompts & Schema)
-          </button>
-          <button
-            onClick={() => setActiveTab('versions')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'versions'
-                ? 'border-action-primary text-action-primary'
-                : 'border-transparent text-ink-secondary hover:text-ink-primary'
-            }`}
-          >
-            <History className="w-4 h-4" /> Versions ({artifact.versions.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('validation')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'validation'
-                ? 'border-action-primary text-action-primary'
-                : 'border-transparent text-ink-secondary hover:text-ink-primary'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" /> Validation
-            {artifact.validationState && (
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  artifact.validationState.isValid ? 'bg-status-success' : 'bg-status-error'
-                }`}
-              />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Tab 1: OVERVIEW */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-lg border border-surface-border bg-surface space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-ink-primary">Metadata & Lineage</h3>
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Artifact ID</span>
-                  <span className="font-mono text-ink-primary">{artifact.id}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Publish Status</span>
-                  <StatusBadge status={artifact.status} />
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Current Active Version</span>
-                  <span className="font-mono font-bold text-ink-primary">{artifact.currentVersion}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Created By</span>
-                  <span className="text-ink-primary font-medium">{artifact.createdBy.name} ({artifact.createdBy.email})</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Created Date</span>
-                  <span className="text-ink-primary">{new Date(artifact.createdAt).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-surface-border">
-                  <span className="text-ink-muted">Last Updated By</span>
-                  <span className="text-ink-primary font-medium">{artifact.updatedBy.name}</span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-ink-muted">Last Updated Date</span>
-                  <span className="text-ink-primary">{new Date(artifact.updatedAt).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 rounded-lg border border-surface-border bg-surface space-y-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-ink-primary">
-                    Associated Projects ({associatedProjects.length})
-                  </h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsAttachProjectOpen(true)}
-                    icon={<Link2 className="w-3.5 h-3.5" />}
-                  >
-                    Link to Project
-                  </Button>
-                </div>
-
-                {associatedProjects.length === 0 ? (
-                  <p className="text-xs text-ink-muted py-6 text-center border border-dashed border-surface-border rounded-lg">
-                    This artifact is not currently linked to any project.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {associatedProjects.map(proj => (
-                      <div
-                        key={proj.id}
-                        className="flex items-center justify-between p-3 rounded-md border border-surface-border bg-surface-hover/50 text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FolderKanban className="w-4 h-4 text-action-primary" />
-                          <Link to={`/projects/${proj.id}`} className="font-semibold text-ink-primary hover:underline">
-                            {proj.name}
-                          </Link>
-                        </div>
-                        <button
-                          onClick={() => detachArtifactFromProject(proj.id, artifact.id)}
-                          className="p-1 rounded text-ink-muted hover:text-status-error-text hover:bg-status-error/10"
-                          title="Unlink from project"
-                        >
-                          <Unlink className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="p-3 rounded bg-action-primary/5 border border-action-primary/20 text-xs text-ink-secondary">
-                <strong className="text-action-primary">Reusability Note:</strong> Updating this artifact's published version automatically updates schemas in all linked projects.
-              </div>
-            </div>
-          </div>
+      {/* Success Banner */}
+      {isSavedAlert && (
+        <div className="p-3 bg-brand-green/10 border border-brand-green/20 rounded-level2 text-xs text-brand-green font-bold uppercase tracking-wide flex items-center gap-2 animate-in fade-in">
+          <Check className="w-4 h-4" /> Draft changes saved successfully to prototype store.
         </div>
       )}
 
-      {/* Tab 2: EDITOR */}
-      {activeTab === 'editor' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between bg-surface p-3 rounded-lg border border-surface-border">
-            <div className="text-xs text-ink-secondary">
-              Editing working draft payload for <strong>{artifact.name}</strong>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={handleRunValidation} icon={<ShieldCheck className="w-3.5 h-3.5" />}>
-                Validate Content
-              </Button>
-              <Button size="sm" onClick={handleSaveDraft} icon={<Save className="w-3.5 h-3.5" />}>
-                Save Changes
-              </Button>
-            </div>
+      {/* Detail Navigation Tabs (Stratos Tab Style) */}
+      <div className="flex items-center gap-1.5 p-1 bg-brand-navy/[0.04] dark:bg-white/[0.04] rounded-level3 w-fit border border-brand-navy/[0.06] dark:border-white/10">
+        {detailTabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-level2 transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === tab.id
+                ? 'bg-brand-navy text-white shadow-level1'
+                : 'text-brand-grey hover:text-brand-navy hover:bg-brand-navy/5 dark:hover:text-white'
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1: OVERVIEW */}
+      {activeTab === 'overview' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <StatCard
+              title="Release Version"
+              value={artifact.currentVersion}
+              subtitle="Latest published tag"
+              icon={<History className="w-4 h-4 text-brand-coral" />}
+              delta="Active"
+              deltaType="positive"
+            />
+            <StatCard
+              title="Attached Projects"
+              value={associatedProjects.length}
+              subtitle="Workspaces consuming schema"
+              icon={<FolderKanban className="w-4 h-4 text-brand-navy dark:text-brand-blue" />}
+              delta="Connected"
+              deltaType="positive"
+            />
+            <StatCard
+              title="Audit History"
+              value={artifact.versions?.length || 1}
+              subtitle="Immutable releases"
+              icon={<CheckCircle2 className="w-4 h-4 text-brand-green" />}
+              delta="Audited"
+              deltaType="positive"
+            />
+            <StatCard
+              title="Last Activity"
+              value={artifact.updatedAt.split('T')[0]}
+              subtitle={`By ${artifact.updatedBy || 'Author'}`}
+              icon={<FileCode className="w-4 h-4 text-brand-blue" />}
+              delta="Synchronized"
+              deltaType="neutral"
+            />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PromptEditor
-              label="Prompt - Stage 1 (Extraction Prompt)"
-              description="Markdown/Plaintext instruction for initial verbatim field extraction"
-              value={stage1Prompt}
-              onChange={setStage1Prompt}
-              height="h-72"
-              placeholder="Enter Stage 1 extraction instructions..."
-            />
-
-            <PromptEditor
-              label="Prompt - Stage 2 (Refinement / Normalization)"
-              description="Markdown/Plaintext instruction for GAAP normalization & formatting"
-              value={stage2Prompt}
-              onChange={setStage2Prompt}
-              height="h-72"
-              placeholder="Enter Stage 2 refinement instructions..."
-            />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PromptEditor
-              label="JSON Schema Specification"
-              description="Draft-07 JSON Schema enforcing response structure"
-              language="json"
-              value={jsonSchema}
-              onChange={setJsonSchema}
-              height="h-96"
-              placeholder="{\n  &quot;type&quot;: &quot;object&quot;\n}"
-            />
-
-            <div className="flex flex-col border border-surface-border rounded-lg overflow-hidden bg-surface">
-              <div className="flex items-center justify-between px-4 py-2.5 bg-surface-hover border-b border-surface-border">
-                <span className="text-xs font-semibold uppercase tracking-wider text-ink-primary">
-                  Few-Shot Calibration Examples ({fewShotExamples.length})
-                </span>
-                <Button size="sm" variant="outline" onClick={handleAddExample} icon={<Plus className="w-3.5 h-3.5" />}>
-                  Add Example
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Bound Projects Card */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-brand-navy/[0.06] dark:border-white/10">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+                    Workspace Attachments
+                  </p>
+                  <h3 className="text-lg font-bold uppercase text-brand-black dark:text-white font-display mt-0.5">
+                    Bound Client Projects ({associatedProjects.length})
+                  </h3>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsAttachProjectOpen(true)}
+                  icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
+                >
+                  Bind Project
                 </Button>
               </div>
 
-              <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
-                {fewShotExamples.length === 0 ? (
-                  <p className="text-xs text-ink-muted text-center py-10">
-                    No few-shot examples added yet. Click &quot;Add Example&quot; to calibrate extraction results.
-                  </p>
-                ) : (
-                  fewShotExamples.map((ex, idx) => (
-                    <div key={idx} className="p-3 rounded-lg border border-surface-border bg-surface-hover/30 space-y-2">
+              {associatedProjects.length === 0 ? (
+                <div className="p-8 text-center rounded-level2 bg-brand-navy/[0.02] border border-dashed border-brand-navy/[0.1] text-xs text-brand-grey">
+                  No projects currently consume this schema pipeline.
+                </div>
+              ) : (
+                <div className="border border-brand-navy/[0.06] dark:border-white/10 rounded-level3 overflow-hidden">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-brand-navy/[0.02] dark:bg-white/[0.02] border-b border-brand-navy/[0.06] dark:border-white/10 text-[10px] font-bold uppercase text-brand-grey tracking-widest">
+                        <th className="py-2.5 px-4">Project Name</th>
+                        <th className="py-2.5 px-4">Status</th>
+                        <th className="py-2.5 px-4">Created</th>
+                        <th className="py-2.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-navy/[0.04] dark:divide-white/[0.04]">
+                      {associatedProjects.map(proj => (
+                        <tr key={proj.id} className="hover:bg-brand-navy/[0.02]">
+                          <td className="py-3 px-4">
+                            <Link
+                              to={`/projects/${proj.id}`}
+                              className="font-bold text-brand-navy dark:text-brand-blue hover:underline"
+                            >
+                              {proj.name}
+                            </Link>
+                            <div className="text-[10px] text-brand-grey font-mono">{proj.id}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <StatusBadge status={proj.status} />
+                          </td>
+                          <td className="py-3 px-4 font-mono text-[11px] text-brand-grey tabular-nums">
+                            {proj.createdAt.split('T')[0]}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => detachArtifactFromProject(proj.id, artifact.id)}
+                              className="p-1 rounded text-brand-grey hover:text-alert-coral transition-colors"
+                              title="Detach Project"
+                            >
+                              <Unlink className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Diagnostic Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-5 space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+                Validation Summary
+              </p>
+              <h3 className="text-lg font-bold uppercase text-brand-black dark:text-white font-display">
+                Pipeline Health
+              </h3>
+              <div className="p-3.5 rounded-level2 bg-brand-green/10 border border-brand-green/20 text-xs text-brand-green font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>All JSON schema syntax rules verified</span>
+              </div>
+              <p className="text-xs text-brand-grey leading-relaxed">
+                Stage 1 extraction prompt, Stage 2 normalization rules, and output schemas conform to SEI extraction standard v2.4.
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full mt-2"
+                onClick={() => setActiveTab('validation')}
+              >
+                Inspect Full Diagnostics
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: PIPELINE EDITOR */}
+      {activeTab === 'editor' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <PromptEditor
+              title="Stage 1 Prompt (Raw Document Extraction)"
+              subtitle="Defines LLM instructions for unstructured document OCR extraction."
+              value={stage1Prompt}
+              onChange={setStage1Prompt}
+              mode="prompt"
+              height="380px"
+            />
+            <PromptEditor
+              title="Stage 2 Prompt (Refinement & Normalization)"
+              subtitle="Normalizes line items, validates commitment totals, and standardizes currencies."
+              value={stage2Prompt}
+              onChange={setStage2Prompt}
+              mode="prompt"
+              height="380px"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <PromptEditor
+              title="JSON Schema Definition"
+              subtitle="Strict JSON Schema standard defining required keys and validation constraints."
+              value={jsonSchema}
+              onChange={setJsonSchema}
+              mode="json"
+              height="380px"
+            />
+
+            {/* Few-Shot Calibration Samples */}
+            <div className="bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-brand-navy/[0.06] dark:border-white/10 mb-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+                      Calibration Dataset
+                    </p>
+                    <h3 className="text-lg font-bold uppercase text-brand-black dark:text-white font-display">
+                      Few-Shot Samples ({fewShotExamples.length})
+                    </h3>
+                  </div>
+                  <Button variant="secondary" size="sm" onClick={handleAddExample} icon={<Plus className="w-3.5 h-3.5 text-brand-coral" />}>
+                    Add Sample
+                  </Button>
+                </div>
+
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                  {fewShotExamples.map((ex, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-level2 border border-brand-navy/[0.08] dark:border-white/10 bg-brand-navy/[0.02] dark:bg-white/[0.02] space-y-2 text-xs"
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink-primary">Example #{idx + 1}</span>
+                        <span className="font-bold text-brand-black dark:text-white uppercase text-[10px]">
+                          Sample #{idx + 1}
+                        </span>
                         <button
                           onClick={() => handleRemoveExample(idx)}
-                          className="text-ink-muted hover:text-status-error-text text-xs"
+                          className="text-alert-coral hover:underline text-[10px] font-bold uppercase"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          Remove
                         </button>
                       </div>
-
-                      <div>
-                        <label className="text-[11px] font-semibold text-ink-muted block mb-1">Raw Input String:</label>
-                        <textarea
-                          rows={2}
-                          value={ex.inputRaw || ''}
-                          onChange={e => {
-                            const updated = [...fewShotExamples];
-                            updated[idx] = { ...updated[idx], inputRaw: e.target.value };
-                            setFewShotExamples(updated);
-                          }}
-                          className="w-full p-2 font-mono text-xs rounded border border-input bg-surface text-ink-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[11px] font-semibold text-ink-muted block mb-1">Normalized JSON Output:</label>
-                        <textarea
-                          rows={3}
-                          value={typeof ex.outputNormalized === 'object' ? JSON.stringify(ex.outputNormalized, null, 2) : ex.outputNormalized || ''}
-                          onChange={e => {
-                            const updated = [...fewShotExamples];
-                            try {
-                              updated[idx] = { ...updated[idx], outputNormalized: JSON.parse(e.target.value) };
-                            } catch {
-                              updated[idx] = { ...updated[idx], outputNormalized: e.target.value };
-                            }
-                            setFewShotExamples(updated);
-                          }}
-                          className="w-full p-2 font-mono text-xs rounded border border-input bg-surface text-ink-primary"
-                        />
-                      </div>
+                      <textarea
+                        rows={2}
+                        value={ex.inputRaw}
+                        onChange={e => {
+                          const updated = [...fewShotExamples];
+                          updated[idx] = { ...updated[idx], inputRaw: e.target.value };
+                          setFewShotExamples(updated);
+                        }}
+                        placeholder="Raw input text sample..."
+                        className="w-full p-2 rounded-level1 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 font-mono text-[11px]"
+                      />
                     </div>
-                  ))
-                )}
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-brand-navy/[0.06] dark:border-white/10 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-brand-grey">
+                  Auto-synced with extraction engine
+                </span>
+                <Button variant="coral" size="sm" onClick={handleSaveDraft}>
+                  Save All Edits
+                </Button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab 3: VERSIONS */}
+      {/* TAB 3: VERSION HISTORY */}
       {activeTab === 'versions' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-ink-primary">
-              Immutable Version Lineage ({artifact.versions.length})
-            </h3>
-            <Button size="sm" onClick={() => setIsPublishModalOpen(true)} icon={<Send className="w-3.5 h-3.5" />}>
-              Publish Current Working Draft
+        <div className="bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 overflow-hidden">
+          <div className="p-4 border-b border-brand-navy/[0.06] dark:border-white/10 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+                Audit Trail & Releases
+              </p>
+              <h3 className="text-lg font-bold uppercase text-brand-black dark:text-white font-display">
+                Immutable Version Snapshots
+              </h3>
+            </div>
+            <Button
+              variant="coral"
+              size="sm"
+              onClick={() => setIsPublishModalOpen(true)}
+              icon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Tag New Release
             </Button>
           </div>
 
-          {artifact.versions.length === 0 ? (
-            <div className="p-12 text-center rounded-lg border border-dashed border-surface-border bg-surface">
-              <History className="w-8 h-8 text-ink-muted mx-auto mb-2 opacity-50" />
-              <h4 className="text-sm font-semibold text-ink-primary">No Published Versions Yet</h4>
-              <p className="text-xs text-ink-secondary mt-1">
-                This artifact is currently in draft. Once your prompts and JSON schema pass validation, publish v1.0.0.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {artifact.versions
-                .slice()
-                .reverse()
-                .map((ver, idx) => (
-                  <div
-                    key={idx}
-                    className="p-5 rounded-lg border border-surface-border bg-surface hover:border-emphasis transition-all space-y-3"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-sm px-3 py-1 rounded bg-action-primary/10 text-action-primary font-bold">
-                          {ver.version}
-                        </span>
-                        <div>
-                          <span className="text-xs font-semibold text-ink-primary">
-                            Published by {ver.publishedBy.name}
-                          </span>
-                          <span className="text-[11px] text-ink-muted ml-2">
-                            {new Date(ver.publishedAt).toLocaleString()}
-                          </span>
-                        </div>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-brand-navy/[0.06] dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-brand-grey bg-brand-navy/[0.02] dark:bg-white/[0.02]">
+                <th className="py-3.5 px-4">Version Tag</th>
+                <th className="py-3.5 px-4">Changelog & Notes</th>
+                <th className="py-3.5 px-4">Author</th>
+                <th className="py-3.5 px-4">Release Timestamp</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-navy/[0.04] dark:divide-white/[0.04]">
+              {(!artifact.versions || artifact.versions.length === 0) ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-brand-grey">
+                    No tagged releases created yet.
+                  </td>
+                </tr>
+              ) : (
+                artifact.versions.map(snap => (
+                  <tr key={snap.version} className="hover:bg-brand-navy/[0.02]">
+                    <td className="py-3.5 px-4">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-level1 bg-brand-navy text-white shadow-level1 tabular-nums">
+                        {snap.version}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-brand-black dark:text-white">
+                        {snap.changelog || 'Routine pipeline release'}
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedSnapshot(ver)}
-                          icon={<Eye className="w-3.5 h-3.5" />}
+                    </td>
+                    <td className="py-3.5 px-4 text-brand-grey font-medium">
+                      {snap.publishedBy?.name || 'Author'}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-brand-grey tabular-nums">
+                      {snap.publishedAt.split('T')[0]}
+                    </td>
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setSelectedSnapshot(snap)}
+                          className="px-2.5 py-1 rounded-level2 bg-brand-navy/[0.04] hover:bg-brand-navy hover:text-white text-brand-navy dark:text-white font-bold text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1"
                         >
-                          View Snapshot
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleRevert(ver.version)}
-                          icon={<RotateCcw className="w-3.5 h-3.5" />}
+                          <Eye className="w-3 h-3" /> Inspect
+                        </button>
+                        <button
+                          onClick={() => handleRevert(snap.version)}
+                          className="px-2.5 py-1 rounded-level2 border border-brand-navy/15 hover:bg-brand-navy/[0.05] text-brand-navy dark:text-white font-bold text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1"
                         >
-                          Restore into Editor
-                        </Button>
+                          <RotateCcw className="w-3 h-3" /> Restore
+                        </button>
                       </div>
-                    </div>
-
-                    <p className="text-xs text-ink-secondary">{ver.changelog || 'No changelog specified.'}</p>
-                  </div>
-                ))}
-            </div>
-          )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Tab 4: VALIDATION */}
+      {/* TAB 4: VALIDATION DIAGNOSTICS */}
       {activeTab === 'validation' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <ValidationSummary
             validationState={artifact.validationState}
             onRevalidate={handleRunValidation}
           />
-
-          <div className="p-5 rounded-lg border border-surface-border bg-surface space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-ink-primary">
-              Full Exportable Payload Preview
-            </h4>
-            <pre className="p-4 rounded-md bg-black/90 text-blue-300 font-mono text-xs overflow-x-auto max-h-80">
-              {JSON.stringify(
-                {
-                  id: artifact.id,
-                  name: artifact.name,
-                  version: artifact.currentVersion,
-                  stage1Prompt,
-                  stage2Prompt,
-                  jsonSchema: (() => {
-                    try {
-                      return JSON.parse(jsonSchema);
-                    } catch {
-                      return jsonSchema;
-                    }
-                  })(),
-                  fewShotExamples,
-                },
-                null,
-                2
-              )}
-            </pre>
-          </div>
         </div>
       )}
 
-      {/* Publish Modal */}
+      {/* Publish Version Modal */}
       <Modal
         isOpen={isPublishModalOpen}
         onClose={() => setIsPublishModalOpen(false)}
-        title="Publish New Artifact Version"
-        description="Creates an immutable snapshot of all current prompts, JSON schema, and examples."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setIsPublishModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handlePublishConfirm}>Confirm & Publish</Button>
-          </>
-        }
+        title="Publish Release Version"
+        subtitle={`Create an immutable version snapshot from the current working draft of ${artifact.name}.`}
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-primary mb-1.5">
-              Changelog / Release Summary
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
+              Changelog / Release Notes *
             </label>
             <textarea
               rows={3}
+              required
+              placeholder="e.g. Added Schedule K-1 Part III box parsing & updated currency validation regex..."
               value={changelog}
               onChange={e => setChangelog(e.target.value)}
-              placeholder="e.g. Added strict GAAP operating income scaling rules..."
-              className="w-full px-3 py-2 text-xs rounded-md border border-input bg-surface text-ink-primary focus:outline-none focus:ring-1 focus:ring-focus"
+              className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-navy font-medium"
             />
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
+            <Button variant="secondary" onClick={() => setIsPublishModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="coral" onClick={handlePublishConfirm}>
+              Confirm & Tag Release
+            </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Snapshot Inspector Modal */}
-      <Modal
-        isOpen={!!selectedSnapshot}
-        onClose={() => setSelectedSnapshot(null)}
-        title={`Version Snapshot: ${selectedSnapshot?.version}`}
-        description={`Published ${selectedSnapshot ? new Date(selectedSnapshot.publishedAt).toLocaleString() : ''} by ${selectedSnapshot?.publishedBy.name}`}
-        maxWidth="2xl"
-        footer={<Button onClick={() => setSelectedSnapshot(null)}>Close</Button>}
-      >
-        {selectedSnapshot && (
-          <div className="space-y-4 text-xs font-mono">
-            <div>
-              <span className="font-bold text-ink-primary block mb-1">Stage 1 Extraction Prompt:</span>
-              <pre className="p-3 bg-surface-hover rounded border border-surface-border whitespace-pre-wrap">{selectedSnapshot.stage1Prompt}</pre>
-            </div>
-            <div>
-              <span className="font-bold text-ink-primary block mb-1">Stage 2 Refinement Prompt:</span>
-              <pre className="p-3 bg-surface-hover rounded border border-surface-border whitespace-pre-wrap">{selectedSnapshot.stage2Prompt}</pre>
-            </div>
-            <div>
-              <span className="font-bold text-ink-primary block mb-1">JSON Schema:</span>
-              <pre className="p-3 bg-surface-hover rounded border border-surface-border whitespace-pre-wrap">{selectedSnapshot.jsonSchema}</pre>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Link to Project Modal */}
+      {/* Attach Project Modal */}
       <Modal
         isOpen={isAttachProjectOpen}
         onClose={() => setIsAttachProjectOpen(false)}
-        title="Link Artifact to Project"
-        description="Select a project to associate with this artifact."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setIsAttachProjectOpen(false)}>
+        title="Bind to Project Workspace"
+        subtitle="Select a workspace project to consume this artifact pipeline."
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-grey mb-1">
+              Select Project *
+            </label>
+            {unlinkedProjects.length === 0 ? (
+              <p className="text-xs text-brand-grey py-2 text-center">All projects are already linked.</p>
+            ) : (
+              <select
+                value={selectedProjectToLink}
+                onChange={e => setSelectedProjectToLink(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-level2 bg-white dark:bg-slate-800 border border-brand-navy/15 dark:border-white/15 text-brand-black dark:text-white text-xs font-medium"
+              >
+                <option value="">-- Choose Project --</option>
+                {unlinkedProjects.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
+            <Button variant="secondary" onClick={() => setIsAttachProjectOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAttachProject} disabled={!selectedProjectToLink}>
-              Link Project
+            <Button variant="coral" onClick={handleAttachProject} disabled={!selectedProjectToLink}>
+              Bind to Project
             </Button>
-          </>
-        }
-      >
-        {unlinkedProjects.length === 0 ? (
-          <p className="text-xs text-ink-muted text-center py-6">This artifact is already linked to all existing projects.</p>
-        ) : (
-          <div className="space-y-2">
-            {unlinkedProjects.map(proj => (
-              <label
-                key={proj.id}
-                className="flex items-center gap-3 p-3 rounded-md border border-surface-border hover:bg-surface-hover cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  name="projectSelect"
-                  value={proj.id}
-                  checked={selectedProjectToLink === proj.id}
-                  onChange={() => setSelectedProjectToLink(proj.id)}
-                  className="border-input text-action-primary focus:ring-focus"
-                />
-                <div>
-                  <span className="text-xs font-semibold text-ink-primary">{proj.name}</span>
-                  <p className="text-[11px] text-ink-secondary">{proj.description}</p>
-                </div>
-              </label>
-            ))}
           </div>
-        )}
+        </div>
+      </Modal>
+
+      {/* Snapshot Inspection Modal */}
+      <Modal
+        isOpen={!!selectedSnapshot}
+        onClose={() => setSelectedSnapshot(null)}
+        title={`Release Snapshot ${selectedSnapshot?.version}`}
+        subtitle={`Captured on ${selectedSnapshot?.publishedAt.split('T')[0]} by ${selectedSnapshot?.publishedBy?.name || 'Author'}`}
+        maxWidth="4xl"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-brand-navy/[0.02] rounded-level2 border border-brand-navy/[0.08] text-xs">
+            <span className="font-bold uppercase text-[10px] text-brand-grey">Changelog: </span>
+            <span className="font-medium text-brand-black dark:text-white">{selectedSnapshot?.changelog}</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-grey">Stage 1 Prompt</span>
+              <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
+                {selectedSnapshot?.stage1Prompt}
+              </pre>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-grey">Stage 2 Prompt</span>
+              <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
+                {selectedSnapshot?.stage2Prompt}
+              </pre>
+            </div>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-grey">JSON Schema</span>
+            <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
+              {selectedSnapshot?.jsonSchema}
+            </pre>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-brand-navy/[0.06] dark:border-white/10">
+            <Button variant="secondary" onClick={() => setSelectedSnapshot(null)}>
+              Close
+            </Button>
+            <Button
+              variant="coral"
+              onClick={() => {
+                if (selectedSnapshot) {
+                  handleRevert(selectedSnapshot.version);
+                  setSelectedSnapshot(null);
+                }
+              }}
+            >
+              Restore to Editor
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

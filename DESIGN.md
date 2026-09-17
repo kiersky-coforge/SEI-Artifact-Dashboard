@@ -1,142 +1,66 @@
-# Design Token Architecture & Guidelines
+# Design System & Token Architecture: Stratos Alignment
 
-This document serves as the single source of truth for the visual design system of the **Artifact Dashboard**, aligned with SEI brand guidelines and institutional UX patterns from sister projects **Stratos** and **DataVision**.
-
----
-
-## 1. Two-Layer Token Architecture
-
-The design token system follows a strict two-layer architecture separating **Raw Brand Primitives** (Layer 1) from **Semantic Application Tokens** (Layer 2).
-
-```mermaid
-flowchart LR
-    subgraph L1["Layer 1: Brand Primitives"]
-        Navy["Navy (#082340)"]
-        Coral["Coral (#f15840)"]
-        Green["Green (#089f6a)"]
-        Blue["Blue (#5f8ac7)"]
-        SEIC["SEI Primary & Neutrals"]
-    end
-
-    subgraph L2["Layer 2: Semantic Auto-Flipping Tokens"]
-        Bg["--bg-page / page"]
-        Surface["--surface / surface"]
-        Text["--text-primary / ink-primary"]
-        Action["--action-primary / action-primary"]
-        Status["--status-* / status-*"]
-    end
-
-    subgraph UI["UI Components"]
-        Cards["HeaderBar / StatCard"]
-        Editors["PromptEditor / Monaco"]
-        Badges["StatusBadge / FilterChip"]
-    end
-
-    L1 --> L2
-    L2 --> UI
-```
+This document serves as the single source of truth for the visual design system of the **Artifact Dashboard**, modeled with exact visual and operational parity to **Stratos** (`~/dev/SEI/Stratos`).
 
 ---
 
-## 2. Layer 1: Brand & Institutional Palettes
+## 1. Creative North Star: "The Institutional Command Console"
 
-### Stratos & DataVision Institutional Palette
-| Token | Hex / Value | Description |
+The Artifact Dashboard is an institutional prompt pipeline and JSON schema command center. Built for prompt authors, developers, and administrators managing extraction workflows, it operates with dense tabular data, uppercase micro-labels, tabular-figure numerals, and high contrast.
+
+### Core Visual Principles:
+- **Navy-Tinted Shadows**: Every shadow (`--shadow-level1` through `--shadow-level5`) is a navy-tinted `rgba(8, 35, 64, ...)` rather than neutral gray.
+- **Two Named Corals**:
+  - **Brand Coral (`#F15840`)**: Primary CTA buttons, action highlights, and accent badges.
+  - **Alert Coral (`#E06D53`)**: Status alerts, destructive actions, and error badges. Never interchangeable.
+- **Kicker-Over-Divider Idiom**: Sections are announced by uppercase letter-spaced micro-labels (`0.625rem - 0.75rem`, weight 700–800, `letter-spacing: 0.1em - 0.15em`) rather than heavy horizontal rules.
+- **Display vs. Body Typography**:
+  - **Display / Headlines**: `Anek Latin` (weight 700–900, uppercase, tracking-tight).
+  - **Body Text**: `Tahoma, Verdana, "Segoe UI", sans-serif` for enterprise reliability and dense data scanning.
+  - **Code & Numerals**: `JetBrains Mono` with `tabular-nums` alignment.
+
+---
+
+## 2. Color Palette Matrix
+
+### Brand Primitives (Layer 1)
+| Token | Hex / Value | Usage |
 | :--- | :--- | :--- |
-| `brand-navy` | `#082340` | Deep Institutional Navy, Primary Surface Header & Dark Contrast |
-| `brand-navy-dark` | `#041324` | Midnight Navy background / deep modal layer |
-| `brand-navy-light` | `#14385f` | Interactive Navy Hover State |
-| `brand-coral` | `#f15840` | Primary Accent / CTA / Highlights |
-| `brand-coral-alert`| `#e06d53` | Alert / Destructive Accent |
-| `brand-green` | `#089f6a` | Success & Validated status |
-| `brand-blue` | `#5f8ac7` | Info & Pipeline Active indicators |
-| `brand-black` | `#141414` | High-contrast Typography |
-| `brand-grey` | `#5a5a5a` | Secondary Typography & Neutral Borders |
-| `brand-grey-light`| `#94a3b8` | Muted Text & Disabled Elements |
+| `brand-navy` | `#082340` | System Anchor, Primary Headers, Active Nav & Table Highlights |
+| `brand-navy-dark` | `#041324` | Deep Background & Contrast Fill |
+| `brand-coral` | `#F15840` | Primary Call-to-Action, Display Highlights |
+| `alert-coral` | `#E06D53` | Error / Alert Status |
+| `brand-green` | `#089F6A` | 100% Valid Health, Published Status |
+| `brand-blue` | `#5F8AC7` | Info Indicators & Schema Tagging |
+| `brand-black` | `#141414` | High-emphasis Typography |
+| `brand-grey` | `#5A5A5A` | Default Body Copy & Secondary Labels |
+| `brand-grey-light` | `#94A3B8` | Muted Text & Placeholders |
 
-### SEI Corporate Palette
-| Family | Hex | Shading Variants Available |
+### Elevation Shadows (Navy-Tinted)
+| Level | Value | Usage |
 | :--- | :--- | :--- |
-| **SEI Blue** | `#00c0f3` | `lighter: #c7eafb`, `light: #8ed8f8`, `dark: #0094c1`, `foundational: #005776` |
-| **SEI Red** | `#d82b2a` | `lighter: #ffa6bf`, `light: #ff6680`, `dark: #d90000`, `foundational: #990000` |
-| **SEI Green** | `#a6ce39` | `lighter: #e5edb2`, `light: #d3e27e`, `dark: #65ab3d`, `foundational: #007733` |
-| **SEI Yellow** | `#ffdd00` | `lighter: #fff3b5`, `light: #ffea82`, `dark: #ecbc09`, `foundational: #ce9810` |
-| **SEI Orange** | `#faa519` | `lighter: #ffe0ad`, `light: #fdc578`, `dark: #e87b1e`, `foundational: #c74a1b` |
-| **SEI Pink** | `#f287b7` | `lighter: #fad5e5`, `light: #f7b7d3`, `dark: #d95293`, `foundational: #a0386c` |
-| **SEI Gray** | `#c7c8ca` | `lighter: #f1f2f2`, `light: #e6e7e8`, `dark: #939598`, `darker: #58595b` |
-| **SEI Navy** | `#254a5d` | `light: #c3ccd2`, `medium: #57728b`, `DEFAULT: #254a5d` |
+| `level1` | `0 2px 8px rgba(8, 35, 64, 0.06)` | Table containers, Stat cards, Inactive buttons |
+| `level2` | `0 4px 16px rgba(8, 35, 64, 0.08)` | Hover cards, Dropdown menus |
+| `level3` | `0 8px 24px rgba(8, 35, 64, 0.12)` | Sidebar navigation drawer, Flyouts |
+| `level4` | `0 12px 32px rgba(8, 35, 64, 0.16)` | Popovers, Hover tooltips |
+| `level5` | `0 20px 48px rgba(8, 35, 64, 0.20)` | Modals, System dialogs |
 
 ---
 
-## 3. Layer 2: Semantic Auto-Flipping Tokens
+## 3. Component Specs
 
-Tokens dynamically switch values between Light and Dark mode using CSS variables.
+### 1. Buttons
+- **Primary / Navy**: `bg-brand-navy hover:bg-brand-navy/90 text-white rounded-level3 px-5 py-2.5 text-xs font-bold uppercase tracking-wider shadow-level1`
+- **Coral CTA**: `bg-brand-coral hover:bg-brand-coral/90 text-white rounded-level3 px-5 py-2.5 text-xs font-bold uppercase tracking-wider shadow-level1`
+- **Secondary / Outline**: `bg-white text-brand-navy border border-brand-navy/15 rounded-level3 px-5 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-brand-navy/5`
 
-| Semantic Token | Light Mode Value | Dark Mode Value | Usage |
-| :--- | :--- | :--- | :--- |
-| `--bg-page` | `#f8fafc` | `#081626` | App background |
-| `--surface` | `#ffffff` | `#0c2038` | Base cards, modals, dropdowns |
-| `--surface-hover` | `#f1f5f9` | `#132d4e` | Interactive row & button hover |
-| `--surface-border`| `rgba(8, 35, 64, 0.1)` | `rgba(255, 255, 255, 0.1)` | Subtle structural separators |
-| `--text-primary` | `#141414` | `#f8fafc` | Primary titles, body text |
-| `--text-secondary`| `#5a5a5a` | `#cbd5e1` | Descriptions, metadata, subheadings |
-| `--text-muted` | `#94a3b8` | `#64748b` | Timestamps, placeholders, hints |
-| `--text-brand` | `#082340` | `#38bdf8` | High-emphasis institutional headers |
-| `--action-primary`| `#082340` | `#00c0f3` | Primary action buttons |
-| `--action-secondary`| `#f15840` | `#f15840` | Secondary buttons & highlights |
-| `--action-accent` | `#00c0f3` | `#34d399` | Focus indicators, active tabs |
-| `--border-input` | `rgba(8, 35, 64, 0.18)` | `rgba(255, 255, 255, 0.18)` | Form fields, code editor frames |
+### 2. Tables & Expandable Rows
+- **Container**: `bg-white dark:bg-slate-900 rounded-level4 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 overflow-hidden`
+- **Header**: `border-b border-brand-navy/[0.06] text-[10px] font-bold uppercase tracking-widest text-brand-grey bg-brand-navy/[0.02]`
+- **Row**: `hover:bg-brand-navy/[0.02] cursor-pointer transition-colors divide-y divide-brand-navy/[0.04]`
+- **Expanded Accordion**: `bg-brand-navy/[0.015] p-5 border-b border-brand-navy/[0.06]` with full nested pipeline tables.
 
-### Status Colors (Alpha-aware)
-- **Success (`published` / `valid`)**: Green (`#10b981` / `#34d399`)
-- **Warning (`pending` / `warning`)**: Amber (`#f59e0b` / `#fbbf24`)
-- **Error (`error` / `invalid`)**: Coral / Red (`#e06d53` / `#f87171`)
-- **Info (`info` / `extracting`)**: Blue (`#5f8ac7` / `#38bdf8`)
-- **Neutral (`draft` / `archived`)**: Slate Gray (`#64748b` / `#94a3b8`)
-
----
-
-## 4. Typography & Radii
-
-### Typography
-- **Sans Serif**: `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
-  - Used for all UI shells, tables, badges, headers, and metadata.
-- **Monospace**: `JetBrains Mono, ui-monospace, Menlo, Monaco, Consolas, monospace`
-  - Used for Stage 1 / Stage 2 Prompts, JSON Schemas, Few-shot Examples, and Version Hashes.
-
-### Corner Radii (Levels)
-- `level1` (`6px`): Small badges, code chips, buttons, inputs.
-- `level2` (`12px`): Cards, tab containers, modals, table containers.
-- `level3` (`18px`): Large flyouts, floating action panels.
-- `level4` (`24px`): Pill buttons, dialog drawers.
-- `level5` (`48px`): Circular avatars and status markers.
-
----
-
-## 5. Standard Component Patterns
-
-### 1. HeaderBar
-Institutional banner component with kicker, main title, subtitle, and primary actions.
-```tsx
-<HeaderBar
-  kicker="Projects / Capital Call 2024"
-  title="10-K Schedule Extraction Pipeline"
-  description="Multi-stage artifact for extracting commitments and schedules."
-  actions={<Button variant="primary">Publish Version</Button>}
-/>
-```
-
-### 2. StatCard
-Key metric indicators with delta trends and status tinting.
-```tsx
-<StatCard
-  title="Validation Health"
-  value="100%"
-  description="Passed all JSON schema checks"
-  trend={{ direction: 'up', label: '0 errors' }}
-  icon={<ShieldCheck className="w-5 h-5 text-emerald-500" />}
-/>
-```
-
-### 3. PromptEditor
-Monospaced syntax-highlighted editor for pipeline stages with line counting and schema validation indicators.
+### 3. Detail Tabs
+- **Container**: `flex items-center gap-1.5 p-1 bg-brand-navy/[0.04] rounded-level3 border border-brand-navy/[0.06]`
+- **Active Tab**: `bg-brand-navy text-white shadow-level1 font-bold text-xs uppercase tracking-wide rounded-level2 px-4 py-2`
+- **Inactive Tab**: `text-brand-grey hover:text-brand-navy hover:bg-brand-navy/5 font-bold text-xs uppercase tracking-wide rounded-level2 px-4 py-2`
