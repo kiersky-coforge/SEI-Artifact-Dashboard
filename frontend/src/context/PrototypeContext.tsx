@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Artifact, Project, User, Role, PersonaType, ValidationState, ValidationErrorItem } from '../../../shared/types';
+import type { Artifact, Project, User, Role, PersonaType, ValidationState, ValidationErrorItem, ArtifactVersionSnapshot } from '../../../shared/types';
 import { SEED_ARTIFACTS, SEED_PROJECTS, SEED_USERS, SEED_ROLES } from '../../../shared/seed';
 
 interface PrototypeContextType {
@@ -246,19 +246,50 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return newArt;
   };
 
+  const getNextDraftVersion = (currentVersion: string, versions: ArtifactVersionSnapshot[] = []): string => {
+    if (currentVersion.endsWith('-draft')) {
+      return currentVersion;
+    }
+    const match = currentVersion.match(/^v?(\d+)\.(\d+)(?:\.(\d+))?/);
+    if (match) {
+      const major = parseInt(match[1], 10);
+      const minor = parseInt(match[2], 10);
+      return `v${major}.${minor + 1}.0-draft`;
+    }
+    return `v${versions.length + 1}.0.0-draft`;
+  };
+
   const updateArtifact = (id: string, updates: Partial<Artifact>) => {
     const currentUser = users.find(u => u.roles.includes(persona)) || users[0];
     setArtifacts(prev =>
-      prev.map(a =>
-        a.id === id
-          ? {
-              ...a,
-              ...updates,
-              updatedAt: new Date().toISOString(),
-              updatedBy: { id: currentUser.id, name: currentUser.name, email: currentUser.email }
-            }
-          : a
-      )
+      prev.map(a => {
+        if (a.id !== id) return a;
+
+        let newStatus = updates.status !== undefined ? updates.status : a.status;
+        let newVersion = updates.currentVersion !== undefined ? updates.currentVersion : a.currentVersion;
+
+        // Check if pipeline content was changed
+        const hasContentUpdates =
+          (updates.stage1Prompt !== undefined && updates.stage1Prompt !== a.stage1Prompt) ||
+          (updates.stage2Prompt !== undefined && updates.stage2Prompt !== a.stage2Prompt) ||
+          (updates.jsonSchema !== undefined && updates.jsonSchema !== a.jsonSchema) ||
+          (updates.fewShotExamples !== undefined && JSON.stringify(updates.fewShotExamples) !== JSON.stringify(a.fewShotExamples));
+
+        // If making edits to a published artifact, automatically fork into draft mode with next draft version
+        if (hasContentUpdates && a.status === 'published' && updates.status === undefined) {
+          newStatus = 'draft';
+          newVersion = getNextDraftVersion(a.currentVersion, a.versions);
+        }
+
+        return {
+          ...a,
+          ...updates,
+          status: newStatus,
+          currentVersion: newVersion,
+          updatedAt: new Date().toISOString(),
+          updatedBy: { id: currentUser.id, name: currentUser.name, email: currentUser.email },
+        };
+      })
     );
   };
 
@@ -324,25 +355,34 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!target) return;
 
     const currentUser = users.find(u => u.roles.includes(persona)) || users[0];
-    const prevVersionNum = target.versions.length > 0
-      ? parseInt(target.versions[target.versions.length - 1].version.replace(/[^0-9]/g, '') || '10', 10)
-      : 10;
-    const nextVersionStr = `v${((prevVersionNum + 1) / 10).toFixed(1)}.0`;
+    
+    // Clean published version tag (strip -draft suffix if present, or compute next)
+    let publishedVersionStr = target.currentVersion.replace(/-draft$/, '');
+    if (publishedVersionStr === target.currentVersion && target.versions.some(v => v.version === publishedVersionStr)) {
+      const match = publishedVersionStr.match(/^v?(\d+)\.(\d+)(?:\.(\d+))?/);
+      if (match) {
+        const major = parseInt(match[1], 10);
+        const minor = parseInt(match[2], 10);
+        publishedVersionStr = `v${major}.${minor + 1}.0`;
+      } else {
+        publishedVersionStr = `v${target.versions.length + 1}.0.0`;
+      }
+    }
 
     const snapshot = {
-      version: nextVersionStr,
+      version: publishedVersionStr,
       stage1Prompt: target.stage1Prompt,
       stage2Prompt: target.stage2Prompt,
       jsonSchema: target.jsonSchema,
       fewShotExamples: target.fewShotExamples,
       publishedAt: new Date().toISOString(),
       publishedBy: { id: currentUser.id, name: currentUser.name, email: currentUser.email },
-      changelog: changelog || `Release version ${nextVersionStr}`,
+      changelog: changelog || `Release version ${publishedVersionStr}`,
     };
 
     updateArtifact(id, {
       status: 'published',
-      currentVersion: nextVersionStr,
+      currentVersion: publishedVersionStr,
       versions: [...target.versions, snapshot],
     });
   };
@@ -354,12 +394,15 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const snapshot = target.versions.find(v => v.version === targetVersion);
     if (!snapshot) return;
 
+    const nextDraftVersion = getNextDraftVersion(target.currentVersion, target.versions);
+
     updateArtifact(id, {
       stage1Prompt: snapshot.stage1Prompt,
       stage2Prompt: snapshot.stage2Prompt,
       jsonSchema: snapshot.jsonSchema,
       fewShotExamples: snapshot.fewShotExamples,
       status: 'draft',
+      currentVersion: nextDraftVersion,
     });
   };
 

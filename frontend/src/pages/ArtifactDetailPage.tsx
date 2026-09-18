@@ -12,7 +12,6 @@ import { Select } from '../components/atoms/Select';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import {
   ArrowLeft,
-  Save,
   Send,
   RotateCcw,
   CheckCircle2,
@@ -56,10 +55,12 @@ export const ArtifactDetailPage: React.FC = () => {
 
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [changelog, setChangelog] = useState('');
-  const [isSavedAlert, setIsSavedAlert] = useState(false);
   const [selectedSnapshot, setSelectedSnapshot] = useState<ArtifactVersionSnapshot | null>(null);
   const [isAttachProjectOpen, setIsAttachProjectOpen] = useState(false);
   const [selectedProjectToLink, setSelectedProjectToLink] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+
+  const debounceTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     if (artifact) {
@@ -69,6 +70,15 @@ export const ArtifactDetailPage: React.FC = () => {
       setFewShotExamples(artifact.fewShotExamples || []);
     }
   }, [artifact?.id]);
+
+  // Clean up timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   if (!artifact) {
     return (
@@ -84,15 +94,30 @@ export const ArtifactDetailPage: React.FC = () => {
   const associatedProjects = projects.filter(p => artifact.projectIds.includes(p.id));
   const unlinkedProjects = projects.filter(p => !artifact.projectIds.includes(p.id));
 
-  const handleSaveDraft = () => {
-    updateArtifact(artifact.id, {
-      stage1Prompt,
-      stage2Prompt,
-      jsonSchema,
-      fewShotExamples,
-    });
-    setIsSavedAlert(true);
-    setTimeout(() => setIsSavedAlert(false), 2500);
+  const triggerAutoSave = (updates: Partial<typeof artifact>) => {
+    setSaveStatus('saving');
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      updateArtifact(artifact.id, updates);
+      setSaveStatus('saved');
+    }, 350);
+  };
+
+  const handleStage1Change = (val: string) => {
+    setStage1Prompt(val);
+    triggerAutoSave({ stage1Prompt: val });
+  };
+
+  const handleStage2Change = (val: string) => {
+    setStage2Prompt(val);
+    triggerAutoSave({ stage2Prompt: val });
+  };
+
+  const handleJsonSchemaChange = (val: string) => {
+    setJsonSchema(val);
+    triggerAutoSave({ jsonSchema: val });
   };
 
   const handleRunValidation = () => {
@@ -119,7 +144,7 @@ export const ArtifactDetailPage: React.FC = () => {
   };
 
   const handleRevert = (version: string) => {
-    if (confirm(`Restore snapshot "${version}" to the active editor? Working draft changes will be replaced.`)) {
+    if (confirm(`Restore snapshot "${version}" to the active editor? A new working draft will be created.`)) {
       revertArtifactVersion(artifact.id, version);
       setActiveTab('editor');
     }
@@ -130,11 +155,24 @@ export const ArtifactDetailPage: React.FC = () => {
       inputRaw: 'Example document excerpt for calibration...',
       outputNormalized: { commitmentAmount: 5000000, currency: 'USD' },
     };
-    setFewShotExamples([...fewShotExamples, newEx]);
+    const updated = [...fewShotExamples, newEx];
+    setFewShotExamples(updated);
+    updateArtifact(artifact.id, { fewShotExamples: updated });
+    setSaveStatus('saved');
   };
 
   const handleRemoveExample = (index: number) => {
-    setFewShotExamples(fewShotExamples.filter((_, idx) => idx !== index));
+    const updated = fewShotExamples.filter((_, idx) => idx !== index);
+    setFewShotExamples(updated);
+    updateArtifact(artifact.id, { fewShotExamples: updated });
+    setSaveStatus('saved');
+  };
+
+  const handleExampleChange = (index: number, val: string) => {
+    const updated = [...fewShotExamples];
+    updated[index] = { ...updated[index], inputRaw: val };
+    setFewShotExamples(updated);
+    triggerAutoSave({ fewShotExamples: updated });
   };
 
   const handleAttachProject = () => {
@@ -294,18 +332,23 @@ export const ArtifactDetailPage: React.FC = () => {
               {artifact.currentVersion}
             </span>
             <StatusBadge status={artifact.status} />
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-navy/[0.04] dark:bg-white/[0.04] border border-surface-border">
+              {saveStatus === 'saving' ? (
+                <span className="flex items-center gap-1 text-ink-secondary">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-coral animate-ping" />
+                  Saving...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-brand-green">
+                  <Check className="w-3 h-3 text-brand-green" />
+                  Auto-saved
+                </span>
+              )}
+            </div>
           </div>
         }
         actions={
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleSaveDraft}
-              icon={<Save className="w-3.5 h-3.5 text-brand-coral" />}
-            >
-              Save Draft
-            </Button>
             <Button
               variant="coral"
               size="sm"
@@ -317,13 +360,6 @@ export const ArtifactDetailPage: React.FC = () => {
           </div>
         }
       />
-
-      {/* Success Banner */}
-      {isSavedAlert && (
-        <div className="p-3 bg-brand-green/10 border border-brand-green/20 rounded-level2 text-xs text-brand-green font-bold uppercase tracking-wide flex items-center gap-2 animate-in fade-in">
-          <Check className="w-4 h-4" /> Draft changes saved successfully to prototype store.
-        </div>
-      )}
 
       {/* Detail Navigation Tabs (Stratos Tab Style) */}
       <div className="flex items-center gap-1.5 p-1 bg-brand-navy/[0.04] dark:bg-white/[0.04] rounded-level3 w-fit border border-surface-border">
@@ -419,7 +455,7 @@ export const ArtifactDetailPage: React.FC = () => {
               title="Stage 1 Prompt (Raw Document Extraction)"
               subtitle="Defines LLM instructions for unstructured document OCR extraction."
               value={stage1Prompt}
-              onChange={setStage1Prompt}
+              onChange={handleStage1Change}
               mode="prompt"
               height="380px"
             />
@@ -427,7 +463,7 @@ export const ArtifactDetailPage: React.FC = () => {
               title="Stage 2 Prompt (Refinement & Normalization)"
               subtitle="Normalizes line items, validates commitment totals, and standardizes currencies."
               value={stage2Prompt}
-              onChange={setStage2Prompt}
+              onChange={handleStage2Change}
               mode="prompt"
               height="380px"
             />
@@ -438,7 +474,7 @@ export const ArtifactDetailPage: React.FC = () => {
               title="JSON Schema Definition"
               subtitle="Strict JSON Schema standard defining required keys and validation constraints."
               value={jsonSchema}
-              onChange={setJsonSchema}
+              onChange={handleJsonSchemaChange}
               mode="json"
               height="380px"
             />
@@ -480,11 +516,7 @@ export const ArtifactDetailPage: React.FC = () => {
                       <textarea
                         rows={2}
                         value={ex.inputRaw}
-                        onChange={e => {
-                          const updated = [...fewShotExamples];
-                          updated[idx] = { ...updated[idx], inputRaw: e.target.value };
-                          setFewShotExamples(updated);
-                        }}
+                        onChange={e => handleExampleChange(idx, e.target.value)}
                         placeholder="Raw input text sample..."
                         className="w-full p-2 rounded-level1 bg-surface border border-input font-mono text-[11px]"
                       />
@@ -494,12 +526,13 @@ export const ArtifactDetailPage: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-surface-border flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-ink-secondary">
-                  Auto-synced with extraction engine
+                <span className="text-[10px] font-bold uppercase tracking-wide text-ink-secondary flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-brand-green" />
+                  Auto-synced with active working draft
                 </span>
-                <Button variant="coral" size="sm" onClick={handleSaveDraft}>
-                  Save All Edits
-                </Button>
+                <span className="text-[10px] font-mono font-medium text-ink-secondary/70">
+                  {saveStatus === 'saving' ? 'Saving changes...' : 'All changes saved'}
+                </span>
               </div>
             </div>
           </div>
