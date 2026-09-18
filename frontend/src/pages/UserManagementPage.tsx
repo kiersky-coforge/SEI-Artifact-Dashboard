@@ -11,7 +11,6 @@ import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import {
   Plus,
   Users,
-  ChevronRight,
   Search,
 } from 'lucide-react';
 import type { User, UserRole } from '../../../shared/types';
@@ -130,24 +129,6 @@ export const UserManagementPage: React.FC = () => {
       sortValue: user => user.lastLoginAt || '',
       cellClassName: 'text-ink-secondary font-mono text-[11px] tabular-nums whitespace-nowrap',
       render: user => (user.lastLoginAt ? user.lastLoginAt.split('T')[0] : 'Never'),
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      align: 'right',
-      hideable: false,
-      cellClassName: 'whitespace-nowrap',
-      render: user => (
-        <div className="flex items-center justify-end">
-          <Link
-            to={`/users/${user.id}`}
-            className="px-3 py-1.5 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 hover:bg-brand-navy hover:text-white text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          >
-            <span>Manage</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      ),
     },
   ];
 

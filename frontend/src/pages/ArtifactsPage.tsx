@@ -13,14 +13,13 @@ import { ValidationHealthPill } from '../components/molecules/ValidationHealthPi
 import {
   Plus,
   Cpu,
-  Trash2,
   FolderKanban,
 } from 'lucide-react';
 import type { Artifact } from '../../../shared/types';
 
 export const ArtifactsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { artifacts, projects, createArtifact, deleteArtifact } = usePrototype();
+  const { artifacts, projects, createArtifact } = usePrototype();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -34,13 +33,6 @@ export const ArtifactsPage: React.FC = () => {
     setDescription('');
     setInitialProject('');
     setIsCreateOpen(false);
-  };
-
-  const handleDelete = (e: React.MouseEvent, id: string, artName: string) => {
-    e.stopPropagation();
-    if (confirm(`Are you sure you want to delete artifact "${artName}"?`)) {
-      deleteArtifact(id);
-    }
   };
 
   const artifactColumns: ColumnDef<Artifact>[] = [
@@ -120,24 +112,6 @@ export const ArtifactsPage: React.FC = () => {
       header: 'Validation Health',
       cellClassName: 'whitespace-nowrap',
       render: () => <ValidationHealthPill />,
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      align: 'right',
-      hideable: false,
-      cellClassName: 'whitespace-nowrap',
-      render: art => (
-        <button
-          type="button"
-          onClick={e => handleDelete(e, art.id, art.name)}
-          className="p-1.5 rounded-level1 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          title="Delete Artifact"
-          aria-label={`Delete artifact ${art.name}`}
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      ),
     },
   ];
 
