@@ -5,7 +5,6 @@ import { Button } from '../components/atoms/Button';
 import { StatusBadge } from '../components/atoms/StatusBadge';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
-import { StatCard } from '../components/molecules/StatCard';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
 import { Select } from '../components/atoms/Select';
@@ -14,11 +13,9 @@ import { PipelineStageBadges } from '../components/molecules/PipelineStageBadges
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
 import {
   Plus,
-  FolderKanban,
   Cpu,
-  CheckCircle2,
-  AlertCircle,
   Trash2,
+  FolderKanban,
 } from 'lucide-react';
 import type { Artifact } from '../../../shared/types';
 
@@ -29,10 +26,6 @@ export const ArtifactsPage: React.FC = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [initialProject, setInitialProject] = useState('');
-
-  const publishedCount = artifacts.filter(a => a.status === 'published').length;
-  const draftCount = artifacts.filter(a => a.status === 'draft').length;
-  const totalVersions = artifacts.reduce((acc, a) => acc + (a.versions?.length || 0), 0);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,42 +169,6 @@ export const ArtifactsPage: React.FC = () => {
           </Button>
         }
       />
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          title="Published Artifacts"
-          value={publishedCount}
-          subtitle="Validated & production-ready"
-          icon={<CheckCircle2 className="w-4 h-4 text-brand-green" />}
-          delta="100% Validated"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Draft Iterations"
-          value={draftCount}
-          subtitle="Work-in-progress pipelines"
-          icon={<AlertCircle className="w-4 h-4 text-brand-coral" />}
-          delta="In Authoring"
-          deltaType="neutral"
-        />
-        <StatCard
-          title="Version Snapshots"
-          value={totalVersions}
-          subtitle="Immutable release history"
-          icon={<Cpu className="w-4 h-4 text-brand-blue" />}
-          delta="Audited"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Project Associations"
-          value={projects.length}
-          subtitle="Target host workspaces"
-          icon={<FolderKanban className="w-4 h-4 text-brand-navy dark:text-brand-blue" />}
-          delta="Connected"
-          deltaType="positive"
-        />
-      </div>
 
       {/* Artifacts Table */}
       <DataTable<Artifact>

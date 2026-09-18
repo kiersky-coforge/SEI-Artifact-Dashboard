@@ -4,7 +4,6 @@ import { Button } from '../components/atoms/Button';
 import { StatusBadge } from '../components/atoms/StatusBadge';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
-import { StatCard } from '../components/molecules/StatCard';
 import { Input } from '../components/atoms/Input';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import {
@@ -14,9 +13,7 @@ import {
   Trash2,
   Edit,
   FolderKanban,
-  ShieldCheck,
   Users,
-  UserCog,
 } from 'lucide-react';
 import type { User, UserRole } from '../../../shared/types';
 
@@ -29,11 +26,6 @@ export const UserManagementPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>(['developer']);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-
-  const activeUsersCount = users.filter(u => u.status === 'active').length;
-  const adminCount = users.filter(u => u.roles.includes('admin')).length;
-  const authorCount = users.filter(u => u.roles.includes('author')).length;
-  const devCount = users.filter(u => u.roles.includes('developer')).length;
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,42 +219,6 @@ export const UserManagementPage: React.FC = () => {
           </Button>
         }
       />
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          title="Active Users"
-          value={activeUsersCount}
-          subtitle={`${users.length - activeUsersCount} disabled`}
-          icon={<Users className="w-4 h-4 text-brand-navy dark:text-brand-blue" />}
-          delta="100% Active"
-          deltaType="positive"
-        />
-        <StatCard
-          title="System Admins"
-          value={adminCount}
-          subtitle="Full governance rights"
-          icon={<ShieldCheck className="w-4 h-4 text-brand-coral" />}
-          delta="Governance"
-          deltaType="neutral"
-        />
-        <StatCard
-          title="Prompt Authors"
-          value={authorCount}
-          subtitle="Pipeline & Schema Creators"
-          icon={<UserCog className="w-4 h-4 text-brand-green" />}
-          delta="Active Authors"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Integration Devs"
-          value={devCount}
-          subtitle="Workspace Consumers"
-          icon={<FolderKanban className="w-4 h-4 text-brand-blue" />}
-          delta="Developers"
-          deltaType="positive"
-        />
-      </div>
 
       {/* Users Table */}
       <DataTable<User>

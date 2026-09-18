@@ -5,7 +5,6 @@ import { Button } from '../components/atoms/Button';
 import { StatusBadge } from '../components/atoms/StatusBadge';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
-import { StatCard } from '../components/molecules/StatCard';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
 import { Select } from '../components/atoms/Select';
@@ -16,8 +15,6 @@ import {
   Plus,
   FolderKanban,
   Cpu,
-  Layers,
-  Users,
   Link2,
   Unlink,
   ExternalLink,
@@ -45,9 +42,6 @@ export const ProjectsPage: React.FC = () => {
 
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
   const [artifactToLink, setArtifactToLink] = useState<string>('');
-
-  const activeCount = projects.filter(p => p.status === 'active').length;
-  const totalArtifactLinks = projects.reduce((acc, p) => acc + p.artifactIds.length, 0);
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
@@ -348,42 +342,6 @@ export const ProjectsPage: React.FC = () => {
           </Button>
         }
       />
-
-      {/* KPI Metrics Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          title="Active Projects"
-          value={activeCount}
-          subtitle="Operating in production"
-          icon={<FolderKanban className="w-4 h-4" />}
-          delta="100% Online"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Registered Artifacts"
-          value={artifacts.length}
-          subtitle="Reusable prompt pipelines"
-          icon={<Cpu className="w-4 h-4 text-brand-coral" />}
-          delta="+2 this month"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Pipeline Bindings"
-          value={totalArtifactLinks}
-          subtitle="Cross-project attachments"
-          icon={<Layers className="w-4 h-4 text-brand-blue" />}
-          delta="Many-to-Many"
-          deltaType="neutral"
-        />
-        <StatCard
-          title="Team Members"
-          value={users.length}
-          subtitle="Admins, Authors, Devs"
-          icon={<Users className="w-4 h-4 text-brand-green" />}
-          delta="RBAC Active"
-          deltaType="positive"
-        />
-      </div>
 
       {/* Expandable Projects Table (Stratos Table Style) */}
       <DataTable<Project>

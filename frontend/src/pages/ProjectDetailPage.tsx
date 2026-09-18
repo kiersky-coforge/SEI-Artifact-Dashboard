@@ -5,13 +5,12 @@ import { Button } from '../components/atoms/Button';
 import { StatusBadge } from '../components/atoms/StatusBadge';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
-import { StatCard } from '../components/molecules/StatCard';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import { PipelineStageBadges } from '../components/molecules/PipelineStageBadges';
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
-import { ArrowLeft, Plus, Link2, Unlink, Cpu, Trash2, Users, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Link2, Unlink, Cpu, Trash2 } from 'lucide-react';
 import type { Artifact } from '../../../shared/types';
 
 export const ProjectDetailPage: React.FC = () => {
@@ -20,7 +19,6 @@ export const ProjectDetailPage: React.FC = () => {
   const {
     projects,
     artifacts,
-    users,
     attachArtifactToProject,
     detachArtifactFromProject,
     createArtifact,
@@ -47,7 +45,6 @@ export const ProjectDetailPage: React.FC = () => {
 
   const linkedArtifacts = artifacts.filter(a => project.artifactIds.includes(a.id));
   const unlinkedArtifacts = artifacts.filter(a => !project.artifactIds.includes(a.id));
-  const assignedUsers = users.filter(u => project.userIds.includes(u.id));
 
   const handleAttach = () => {
     selectedToAttach.forEach(aid => attachArtifactToProject(project.id, aid));
@@ -178,34 +175,6 @@ export const ProjectDetailPage: React.FC = () => {
           </>
         }
       />
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard
-          title="Bound Pipelines"
-          value={linkedArtifacts.length}
-          subtitle="Active extraction schemas"
-          icon={<Cpu className="w-4 h-4 text-brand-coral" />}
-          delta="Shared"
-          deltaType="positive"
-        />
-        <StatCard
-          title="Assigned Team"
-          value={assignedUsers.length}
-          subtitle={assignedUsers.map(u => u.name).join(', ') || 'None'}
-          icon={<Users className="w-4 h-4 text-brand-green" />}
-          delta="Collaborators"
-          deltaType="neutral"
-        />
-        <StatCard
-          title="Created Date"
-          value={project.createdAt.split('T')[0]}
-          subtitle="Project initiation"
-          icon={<Calendar className="w-4 h-4 text-brand-blue" />}
-          delta="Active"
-          deltaType="positive"
-        />
-      </div>
 
       {/* Associated Artifacts Table Section */}
       <div className="space-y-3 pt-2">

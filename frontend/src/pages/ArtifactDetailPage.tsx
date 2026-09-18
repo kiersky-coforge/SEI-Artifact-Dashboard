@@ -7,7 +7,6 @@ import { PromptEditor } from '../components/molecules/PromptEditor';
 import { ValidationSummary } from '../components/molecules/ValidationSummary';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
-import { StatCard } from '../components/molecules/StatCard';
 import { Textarea } from '../components/atoms/Textarea';
 import { Select } from '../components/atoms/Select';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
@@ -21,7 +20,6 @@ import {
   FileCode,
   History,
   ShieldCheck,
-  FolderKanban,
   Plus,
   Trash2,
   Eye,
@@ -352,41 +350,6 @@ export const ArtifactDetailPage: React.FC = () => {
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <StatCard
-              title="Release Version"
-              value={artifact.currentVersion}
-              subtitle="Latest published tag"
-              icon={<History className="w-4 h-4 text-brand-coral" />}
-              delta="Active"
-              deltaType="positive"
-            />
-            <StatCard
-              title="Attached Projects"
-              value={associatedProjects.length}
-              subtitle="Workspaces consuming schema"
-              icon={<FolderKanban className="w-4 h-4 text-brand-navy dark:text-brand-blue" />}
-              delta="Connected"
-              deltaType="positive"
-            />
-            <StatCard
-              title="Audit History"
-              value={artifact.versions?.length || 1}
-              subtitle="Immutable releases"
-              icon={<CheckCircle2 className="w-4 h-4 text-brand-green" />}
-              delta="Audited"
-              deltaType="positive"
-            />
-            <StatCard
-              title="Last Activity"
-              value={artifact.updatedAt.split('T')[0]}
-              subtitle={`By ${artifact.updatedBy || 'Author'}`}
-              icon={<FileCode className="w-4 h-4 text-brand-blue" />}
-              delta="Synchronized"
-              deltaType="neutral"
-            />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Bound Projects Card */}
             <div className="lg:col-span-2 bg-surface rounded-level4 border border-surface-border shadow-level1 p-5 space-y-4">
