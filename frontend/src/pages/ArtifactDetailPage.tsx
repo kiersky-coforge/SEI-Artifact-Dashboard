@@ -211,14 +211,11 @@ export const ArtifactDetailPage: React.FC = () => {
   const versionColumns: ColumnDef<ArtifactVersionSnapshot>[] = [
     {
       id: 'version',
-      header: 'Version Tag',
+      header: 'Version',
       sortValue: snap => snap.version,
       hideable: false,
-      render: snap => (
-        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-level1 bg-brand-navy text-white shadow-level1 tabular-nums">
-          {snap.version}
-        </span>
-      ),
+      cellClassName: 'font-mono text-xs font-bold text-ink-primary tabular-nums',
+      render: snap => snap.version,
     },
     {
       id: 'changelog',
@@ -293,7 +290,7 @@ export const ArtifactDetailPage: React.FC = () => {
         subtitle={artifact.description}
         badge={
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-level1 bg-brand-navy text-white shadow-level1 tabular-nums">
+            <span className="font-mono text-xs font-bold text-ink-primary tabular-nums">
               {artifact.currentVersion}
             </span>
             <StatusBadge status={artifact.status} />

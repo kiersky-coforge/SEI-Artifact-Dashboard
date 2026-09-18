@@ -10,7 +10,6 @@ import { Textarea } from '../components/atoms/Textarea';
 import { Select } from '../components/atoms/Select';
 import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
-import { PipelineStageBadges } from '../components/molecules/PipelineStageBadges';
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
 import {
   Plus,
@@ -129,11 +128,6 @@ export const ProjectsPage: React.FC = () => {
       ),
     },
     {
-      id: 'stages',
-      header: 'Stage Coverage',
-      render: art => <PipelineStageBadges artifact={art} />,
-    },
-    {
       id: 'status',
       header: 'Status',
       sortValue: art => art.status,
@@ -142,7 +136,8 @@ export const ProjectsPage: React.FC = () => {
     {
       id: 'version',
       header: 'Active Version',
-      cellClassName: 'font-mono text-xs font-bold text-brand-navy dark:text-brand-blue tabular-nums',
+      sortValue: art => art.currentVersion,
+      cellClassName: 'font-mono text-xs font-bold text-ink-primary tabular-nums',
       render: art => art.currentVersion,
     },
     {
