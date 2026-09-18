@@ -1,4 +1,87 @@
-import type { Artifact, Project, User } from './types';
+import type { Artifact, Project, User, Role } from './types';
+
+export const SEED_ROLES: Role[] = [
+  {
+    id: 'admin',
+    name: 'System Admin',
+    description: 'Full unrestricted governance, user management, and system role configuration.',
+    isSystem: true,
+    color: 'coral',
+    createdAt: '2026-01-01T00:00:00Z',
+    permissions: {
+      canAccessProjects: true,
+      canAccessArtifacts: true,
+      canAccessUsers: true,
+      canAccessRoles: true,
+      canViewAllProjects: true,
+      projectAccessLevel: 'edit',
+      artifactAccessLevel: 'edit',
+      canAssignUsersToProjects: true,
+      canManageUsers: true,
+      canManageRoles: true,
+    },
+  },
+  {
+    id: 'author',
+    name: 'Prompt Author',
+    description: 'Can author, edit, calibrate with few-shots, and publish release versions of prompt pipelines.',
+    isSystem: false,
+    color: 'green',
+    createdAt: '2026-01-01T00:00:00Z',
+    permissions: {
+      canAccessProjects: true,
+      canAccessArtifacts: true,
+      canAccessUsers: false,
+      canAccessRoles: false,
+      canViewAllProjects: true,
+      projectAccessLevel: 'view',
+      artifactAccessLevel: 'edit',
+      canAssignUsersToProjects: false,
+      canManageUsers: false,
+      canManageRoles: false,
+    },
+  },
+  {
+    id: 'developer',
+    name: 'Integration Developer',
+    description: 'Can create client project workspaces, bind artifacts, and consume normalized schemas.',
+    isSystem: false,
+    color: 'blue',
+    createdAt: '2026-01-01T00:00:00Z',
+    permissions: {
+      canAccessProjects: true,
+      canAccessArtifacts: true,
+      canAccessUsers: false,
+      canAccessRoles: false,
+      canViewAllProjects: false,
+      projectAccessLevel: 'edit',
+      artifactAccessLevel: 'view',
+      canAssignUsersToProjects: true,
+      canManageUsers: false,
+      canManageRoles: false,
+    },
+  },
+  {
+    id: 'auditor',
+    name: 'Compliance Auditor',
+    description: 'Read-only visibility across all organization workspaces and artifacts with audit trails.',
+    isSystem: false,
+    color: 'purple',
+    createdAt: '2026-01-01T00:00:00Z',
+    permissions: {
+      canAccessProjects: true,
+      canAccessArtifacts: true,
+      canAccessUsers: true,
+      canAccessRoles: false,
+      canViewAllProjects: true,
+      projectAccessLevel: 'view',
+      artifactAccessLevel: 'view',
+      canAssignUsersToProjects: false,
+      canManageUsers: false,
+      canManageRoles: false,
+    },
+  },
+];
 
 export const SEED_USERS: User[] = [
   {

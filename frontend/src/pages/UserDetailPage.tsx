@@ -28,7 +28,7 @@ import type { UserRole } from '../../../shared/types';
 export const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { users, projects, updateUser, deleteUser } = usePrototype();
+  const { users, projects, roles: systemRoles, updateUser, deleteUser } = usePrototype();
 
   const user = users.find(u => u.id === id);
 
@@ -62,12 +62,6 @@ export const UserDetailPage: React.FC = () => {
       </div>
     );
   }
-
-  const allRoles: { id: UserRole; label: string; desc: string }[] = [
-    { id: 'admin', label: 'System Admin', desc: 'Full administrative access and user governance' },
-    { id: 'author', label: 'Prompt Author', desc: 'Can author, edit, calibrate, and publish artifacts' },
-    { id: 'developer', label: 'Integration Developer', desc: 'Can create projects and consume schema pipelines' },
-  ];
 
   const filteredProjects = useMemo(() => {
     if (!projectSearchQuery.trim()) return projects;
@@ -169,14 +163,17 @@ export const UserDetailPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <StatusBadge status={user.status} />
             <div className="flex items-center gap-1">
-              {user.roles.map(r => (
-                <span
-                  key={r}
-                  className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-brand-navy/10 dark:bg-white/10 text-brand-navy dark:text-brand-blue border border-brand-navy/15"
-                >
-                  {r}
-                </span>
-              ))}
+              {user.roles.map(r => {
+                const roleObj = systemRoles.find(rl => rl.id === r);
+                return (
+                  <span
+                    key={r}
+                    className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-brand-navy/10 dark:bg-white/10 text-brand-navy dark:text-brand-blue border border-brand-navy/15"
+                  >
+                    {roleObj ? roleObj.name : r}
+                  </span>
+                );
+              })}
             </div>
           </div>
         }
@@ -251,7 +248,7 @@ export const UserDetailPage: React.FC = () => {
                   Role-Based Access Control (RBAC) *
                 </span>
                 <div className="space-y-2">
-                  {allRoles.map(roleItem => {
+                  {systemRoles.map(roleItem => {
                     const isChecked = roles.includes(roleItem.id);
                     return (
                       <label
@@ -271,14 +268,14 @@ export const UserDetailPage: React.FC = () => {
                         />
                         <div className="min-w-0">
                           <div className="font-bold text-xs text-ink-primary uppercase tracking-wide flex items-center gap-1.5">
-                            {roleItem.label}
+                            {roleItem.name}
                             {isChecked && (
                               <span className="text-[9px] px-1.5 py-0.2 rounded bg-brand-navy text-white font-bold">
                                 Assigned
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-ink-secondary mt-0.5 leading-snug">{roleItem.desc}</div>
+                          <div className="text-[11px] text-ink-secondary mt-0.5 leading-snug">{roleItem.description}</div>
                         </div>
                       </label>
                     );

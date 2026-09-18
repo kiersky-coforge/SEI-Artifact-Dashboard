@@ -1,6 +1,37 @@
-export type ArtifactStatus = 'draft' | 'published' | 'archived';
-export type ProjectStatus = 'active' | 'archived';
-export type UserRole = 'admin' | 'author' | 'developer';
+export type UserRole = string;
+
+export interface RolePermissions {
+  // Page access
+  canAccessProjects: boolean;
+  canAccessArtifacts: boolean;
+  canAccessUsers: boolean;
+  canAccessRoles: boolean;
+
+  // Project scope & actions
+  canViewAllProjects: boolean;
+  projectAccessLevel: 'none' | 'view' | 'edit';
+
+  // Artifact actions
+  artifactAccessLevel: 'none' | 'view' | 'edit';
+
+  // User & Governance actions
+  canAssignUsersToProjects: boolean;
+  canManageUsers: boolean;
+  canManageRoles: boolean;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  isSystem?: boolean;
+  color?: string;
+  permissions: RolePermissions;
+  createdAt?: string;
+}
+
+export type ArtifactStatus = 'draft' | 'calibrating' | 'published' | 'archived';
+export type ProjectStatus = 'active' | 'archived' | 'pending';
 export type UserStatus = 'active' | 'disabled';
 
 export interface UserSummary {

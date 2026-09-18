@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Artifact, Project, User, PersonaType, ValidationState, ValidationErrorItem } from '../../../shared/types';
-import { SEED_ARTIFACTS, SEED_PROJECTS, SEED_USERS } from '../../../shared/seed';
+import type { Artifact, Project, User, Role, PersonaType, ValidationState, ValidationErrorItem } from '../../../shared/types';
+import { SEED_ARTIFACTS, SEED_PROJECTS, SEED_USERS, SEED_ROLES } from '../../../shared/seed';
 
 interface PrototypeContextType {
   persona: PersonaType;
@@ -36,6 +36,12 @@ interface PrototypeContextType {
   detachUserFromProject: (projectId: string, userId: string) => void;
   setUserProjects: (userId: string, projectIds: string[]) => void;
   setProjectUsers: (projectId: string, userIds: string[]) => void;
+
+  // Roles & Permissions
+  roles: Role[];
+  createRole: (roleData: Omit<Role, 'id' | 'createdAt'>) => Role;
+  updateRole: (id: string, updates: Partial<Role>) => void;
+  deleteRole: (id: string) => void;
   
   // Reset
   resetData: () => void;
@@ -47,6 +53,7 @@ const STORAGE_KEYS = {
   PROJECTS: 'sei_artifact_dash_projects',
   ARTIFACTS: 'sei_artifact_dash_artifacts',
   USERS: 'sei_artifact_dash_users',
+  ROLES: 'sei_artifact_dash_roles',
   DARK_MODE: 'sei_artifact_dash_darkmode',
 };
 
@@ -71,6 +78,11 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return saved ? JSON.parse(saved) : SEED_USERS;
   });
 
+  const [roles, setRoles] = useState<Role[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.ROLES);
+    return saved ? JSON.parse(saved) : SEED_ROLES;
+  });
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
   }, [projects]);
@@ -82,6 +94,10 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
   }, [users]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(roles));
+  }, [roles]);
 
   useEffect(() => {
     if (darkMode) {
@@ -100,9 +116,11 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjects(SEED_PROJECTS);
     setArtifacts(SEED_ARTIFACTS);
     setUsers(SEED_USERS);
+    setRoles(SEED_ROLES);
     localStorage.removeItem(STORAGE_KEYS.PROJECTS);
     localStorage.removeItem(STORAGE_KEYS.ARTIFACTS);
     localStorage.removeItem(STORAGE_KEYS.USERS);
+    localStorage.removeItem(STORAGE_KEYS.ROLES);
   };
 
   // Project Actions
@@ -475,6 +493,31 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
+  // Role Actions
+  const createRole = (roleData: Omit<Role, 'id' | 'createdAt'>): Role => {
+    const newRole: Role = {
+      ...roleData,
+      id: `role-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setRoles(prev => [...prev, newRole]);
+    return newRole;
+  };
+
+  const updateRole = (id: string, updates: Partial<Role>) => {
+    setRoles(prev => prev.map(r => (r.id === id ? { ...r, ...updates } : r)));
+  };
+
+  const deleteRole = (id: string) => {
+    setRoles(prev => prev.filter(r => r.id !== id));
+    setUsers(prev =>
+      prev.map(u => ({
+        ...u,
+        roles: u.roles.filter(r => r !== id),
+      }))
+    );
+  };
+
   return (
     <PrototypeContext.Provider
       value={{
@@ -505,6 +548,10 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         detachUserFromProject,
         setUserProjects,
         setProjectUsers,
+        roles,
+        createRole,
+        updateRole,
+        deleteRole,
         resetData,
       }}
     >
