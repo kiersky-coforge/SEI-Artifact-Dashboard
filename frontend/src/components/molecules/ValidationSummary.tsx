@@ -16,8 +16,8 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
 }) => {
   if (!validationState) {
     return (
-      <div className="p-5 rounded-level3 border border-brand-navy/[0.08] dark:border-white/10 bg-white dark:bg-slate-900 shadow-level1 flex items-center justify-between">
-        <div className="flex items-center gap-2.5 text-brand-grey text-xs font-semibold uppercase tracking-wide">
+      <div className="p-5 rounded-level3 border border-surface-border bg-surface shadow-level1 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 text-ink-secondary text-xs font-semibold uppercase tracking-wide">
           <AlertTriangle className="w-4 h-4 text-brand-coral" />
           <span>Artifact has not been validated yet.</span>
         </div>
@@ -53,7 +53,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
             >
               {isValid ? 'Payload Validation Passed' : 'Payload Validation Failed'}
             </h4>
-            <p className="text-xs text-brand-grey mt-0.5 font-medium">
+            <p className="text-xs text-ink-secondary mt-0.5 font-medium">
               {isValid
                 ? 'All prompt stages, JSON schema definitions, and example arrays conform to required syntax.'
                 : `${errors.length} error(s) must be resolved before publishing.`}
@@ -63,7 +63,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
 
         <div className="flex items-center gap-3">
           {lastValidatedAt && (
-            <span className="text-[10px] font-mono text-brand-grey tabular-nums">
+            <span className="text-[10px] font-mono text-ink-secondary tabular-nums">
               Checked {new Date(lastValidatedAt).toLocaleTimeString()}
             </span>
           )}
@@ -86,7 +86,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
           </h5>
           <ul className="space-y-1.5">
             {errors.map((err, idx) => (
-              <li key={idx} className="text-xs text-brand-black dark:text-white flex items-start gap-2">
+              <li key={idx} className="text-xs text-ink-primary flex items-start gap-2">
                 <span className="font-mono text-alert-coral font-bold uppercase shrink-0">
                   [{err.field}]
                 </span>
@@ -98,14 +98,14 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
       )}
 
       {warnings.length > 0 && (
-        <div className="p-5 rounded-level4 border border-amber-500/25 bg-amber-500/5 space-y-2">
-          <h5 className="text-xs font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1.5 font-display">
+        <div className="p-5 rounded-level4 border border-status-warning/25 bg-status-warning/5 space-y-2">
+          <h5 className="text-xs font-bold uppercase tracking-widest text-status-warning-text flex items-center gap-1.5 font-display">
             <AlertTriangle className="w-4 h-4" /> Warnings ({warnings.length})
           </h5>
           <ul className="space-y-1.5">
             {warnings.map((warn, idx) => (
-              <li key={idx} className="text-xs text-brand-black dark:text-white flex items-start gap-2">
-                <span className="font-mono text-amber-700 dark:text-amber-400 font-bold uppercase shrink-0">
+              <li key={idx} className="text-xs text-ink-primary flex items-start gap-2">
+                <span className="font-mono text-status-warning-text font-bold uppercase shrink-0">
                   [WARNING]
                 </span>
                 <span>{warn}</span>

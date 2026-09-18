@@ -32,12 +32,12 @@ export const StatCard: React.FC<StatCardProps> = ({
   const content = (
     <div
       onClick={onClick}
-      className={`bg-white dark:bg-slate-900 rounded-level3 border border-brand-navy/[0.06] dark:border-white/10 shadow-level1 p-4 flex flex-col justify-between transition-all ${
+      className={`bg-surface rounded-level3 border border-surface-border shadow-level1 p-4 flex flex-col justify-between transition-all ${
         onClick ? 'cursor-pointer hover:border-brand-navy/20 hover:shadow-level2' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-brand-grey">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary">
           {title}
         </p>
         {icon && (
@@ -48,7 +48,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
 
       <div>
-        <p className="text-2xl font-black text-brand-black dark:text-white tabular-nums font-mono">
+        <p className="text-2xl font-black text-ink-primary tabular-nums font-mono">
           {value}
         </p>
 
@@ -61,7 +61,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                     ? 'bg-brand-green/10 text-brand-green'
                     : deltaType === 'negative'
                     ? 'bg-alert-coral/10 text-alert-coral'
-                    : 'bg-brand-navy/5 text-brand-grey'
+                    : 'bg-brand-navy/5 text-ink-secondary'
                 }`}
               >
                 {delta}
@@ -84,7 +84,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             )}
 
             {subText && (
-              <span className="text-[10px] font-medium text-brand-grey truncate">
+              <span className="text-[10px] font-medium text-ink-secondary truncate">
                 {subText}
               </span>
             )}

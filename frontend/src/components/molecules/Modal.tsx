@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -12,6 +12,9 @@ interface ModalProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -23,17 +26,44 @@ export const Modal: React.FC<ModalProps> = ({
   maxWidth = 'lg',
 }) => {
   const descText = subtitle || description;
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    (firstFocusable ?? dialog)?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialog) return;
+
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
     };
   }, [isOpen, onClose]);
 
@@ -51,18 +81,22 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
       <div
-        className={`w-full ${maxWidths[maxWidth]} bg-surface rounded-lg shadow-hover border border-surface-border overflow-hidden flex flex-col max-h-[90vh]`}
+        ref={dialogRef}
+        tabIndex={-1}
+        className={`w-full ${maxWidths[maxWidth]} bg-surface rounded-lg shadow-hover border border-surface-border overflow-hidden flex flex-col max-h-[90vh] focus:outline-none`}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="modal-title"
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border">
           <div>
-            <h3 className="text-lg font-semibold text-ink-primary">{title}</h3>
+            <h3 id="modal-title" className="text-lg font-semibold text-ink-primary">{title}</h3>
             {descText && <p className="text-xs text-ink-secondary mt-0.5">{descText}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-ink-muted hover:text-ink-primary hover:bg-surface-hover transition-colors"
+            aria-label="Close dialog"
+            className="p-1 rounded-md text-ink-muted hover:text-ink-primary hover:bg-surface-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             <X className="w-5 h-5" />
           </button>

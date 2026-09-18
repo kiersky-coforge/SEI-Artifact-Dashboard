@@ -18,13 +18,6 @@ export const AppShell: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
-
-        <footer className="border-t border-surface-border bg-surface py-4 px-6 mt-auto">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-ink-muted gap-2">
-            <span>SEI Technology & Investment Solutions • Artifact Dashboard</span>
-            <span className="font-mono text-[11px]">v1.0.0 (UX Atlas • React 19 • Tailwind v3)</span>
-          </div>
-        </footer>
       </div>
     </div>
   );

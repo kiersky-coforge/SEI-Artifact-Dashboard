@@ -17,7 +17,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    'inline-flex items-center justify-center font-bold uppercase tracking-wider transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
+    'inline-flex items-center justify-center font-bold uppercase tracking-wider transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-page';
 
   const variantClasses = {
     primary:
@@ -25,11 +25,11 @@ export const Button: React.FC<ButtonProps> = ({
     coral:
       'bg-brand-coral hover:bg-brand-coral/90 text-white rounded-level3 shadow-level1 active:scale-[0.99]',
     secondary:
-      'bg-white dark:bg-slate-800 text-brand-navy dark:text-white border border-brand-navy/15 dark:border-white/15 hover:bg-brand-navy/5 rounded-level3 active:scale-[0.99]',
+      'bg-surface text-brand-navy dark:text-white border border-input hover:bg-brand-navy/5 rounded-level3 active:scale-[0.99]',
     danger:
       'bg-alert-coral hover:bg-alert-coral/90 text-white rounded-level3 shadow-level1 active:scale-[0.99]',
     ghost:
-      'text-brand-grey hover:text-brand-navy dark:hover:text-white hover:bg-brand-navy/5 rounded-level2',
+      'text-ink-secondary hover:text-brand-navy dark:hover:text-white hover:bg-brand-navy/5 rounded-level2',
   };
 
   const sizeClasses = {

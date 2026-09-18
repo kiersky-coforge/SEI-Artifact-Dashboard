@@ -44,8 +44,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   const lineCount = (value.match(/\n/g) || []).length + 1;
 
   return (
-    <div className="flex flex-col border border-brand-navy/[0.08] dark:border-white/10 rounded-level4 overflow-hidden bg-white dark:bg-slate-900 shadow-level1">
-      <div className="flex items-center justify-between px-4 py-3 bg-brand-navy/[0.02] dark:bg-white/[0.02] border-b border-brand-navy/[0.06] dark:border-white/10">
+    <div className="flex flex-col border border-surface-border rounded-level4 overflow-hidden bg-surface shadow-level1">
+      <div className="flex items-center justify-between px-4 py-3 bg-brand-navy/[0.02] dark:bg-white/[0.02] border-b border-surface-border">
         <div className="flex items-center gap-2 min-w-0">
           {langMode === 'json' ? (
             <Code className="w-4 h-4 text-brand-coral flex-shrink-0" />
@@ -53,18 +53,18 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             <FileText className="w-4 h-4 text-brand-navy dark:text-brand-blue flex-shrink-0" />
           )}
           <div className="min-w-0">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-black dark:text-white truncate">
+            <span className="text-xs font-bold uppercase tracking-wider text-ink-primary truncate">
               {displayTitle}
             </span>
             {displaySubtitle && (
-              <p className="text-[10px] text-brand-grey font-medium truncate">
+              <p className="text-[10px] text-ink-secondary font-medium truncate">
                 {displaySubtitle}
               </p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-brand-navy/[0.04] text-brand-grey tabular-nums">
+          <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-brand-navy/[0.04] text-ink-secondary tabular-nums">
             {lineCount} lines
           </span>
           <Button
@@ -85,7 +85,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           placeholder={placeholder}
           readOnly={readOnly}
           style={{ height: height.includes('px') ? height : undefined }}
-          className={`w-full ${height.includes('px') ? '' : height} p-4 font-mono text-xs leading-relaxed bg-white dark:bg-slate-900 text-brand-black dark:text-white placeholder:text-brand-grey/50 focus:outline-none focus:ring-1 focus:ring-brand-navy resize-y`}
+          className={`w-full ${height.includes('px') ? '' : height} p-4 font-mono text-xs leading-relaxed bg-surface text-ink-primary placeholder:text-ink-secondary/50 focus:outline-none focus:ring-1 focus:ring-focus resize-y`}
           spellCheck={false}
         />
       </div>

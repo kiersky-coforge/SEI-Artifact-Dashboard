@@ -40,7 +40,7 @@
 
   --text-primary: #141414;
   --text-secondary: #5a5a5a;
-  --text-muted: #94a3b8;
+  --text-muted: #5f7286;
   --text-brand: #082340;
 
   --action-primary: #082340;
@@ -51,7 +51,7 @@
   --action-accent-foreground: #ffffff;
   --focus-ring: #082340;
 
-  --border-input: rgba(8, 35, 64, 0.12);
+  --border-input: rgba(8, 35, 64, 0.55);
   --border-emphasis: #082340;
 
   /* Stratos Navy-Tinted 5-Level Elevation Shadows */
@@ -64,15 +64,15 @@
   --shadow-hover: var(--shadow-level3);
 
   --status-error: 224 109 83;
-  --status-error-text: 224 109 83;
+  --status-error-text: 179 87 66;
   --status-success: 16 185 129;
-  --status-success-text: 5 150 105;
+  --status-success-text: 4 120 87;
   --status-warning: 245 158 11;
-  --status-warning-text: 217 119 6;
+  --status-warning-text: 180 83 9;
   --status-info: 95 138 199;
   --status-info-text: 37 99 235;
   --status-pending: 245 158 11;
-  --status-pending-text: 217 119 6;
+  --status-pending-text: 180 83 9;
   --status-neutral: 100 116 139;
   --status-neutral-text: 71 85 105;
 }
@@ -98,7 +98,7 @@
   --action-accent-foreground: #082340;
   --focus-ring: #00c0f3;
 
-  --border-input: rgba(255, 255, 255, 0.15);
+  --border-input: rgba(255, 255, 255, 0.4);
   --border-emphasis: #38bdf8;
 
   --shadow-level1: 0 2px 8px rgba(0, 0, 0, 0.3);
