@@ -636,26 +636,34 @@ export const ArtifactDetailPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary">Stage 1 Prompt</span>
-              <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
-                {selectedSnapshot?.stage1Prompt}
-              </pre>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary">Stage 2 Prompt</span>
-              <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
-                {selectedSnapshot?.stage2Prompt}
-              </pre>
-            </div>
+            <PromptEditor
+              title="Stage 1 Prompt"
+              value={selectedSnapshot?.stage1Prompt || ''}
+              onChange={() => {}}
+              readOnly
+              height="200px"
+              initialViewMode="preview"
+              mode="prompt"
+            />
+            <PromptEditor
+              title="Stage 2 Prompt"
+              value={selectedSnapshot?.stage2Prompt || ''}
+              onChange={() => {}}
+              readOnly
+              height="200px"
+              initialViewMode="preview"
+              mode="prompt"
+            />
           </div>
 
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-ink-secondary">JSON Schema</span>
-            <pre className="p-3 bg-brand-navy/[0.04] rounded font-mono text-[11px] overflow-auto max-h-48 border border-brand-navy/[0.08]">
-              {selectedSnapshot?.jsonSchema}
-            </pre>
-          </div>
+          <PromptEditor
+            title="JSON Schema"
+            value={selectedSnapshot?.jsonSchema || ''}
+            onChange={() => {}}
+            readOnly
+            height="200px"
+            mode="json"
+          />
 
           <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
             <Button variant="secondary" onClick={() => setSelectedSnapshot(null)}>
