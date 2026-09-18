@@ -46,26 +46,18 @@ export const ArtifactsPage: React.FC = () => {
   const artifactColumns: ColumnDef<Artifact>[] = [
     {
       id: 'name',
-      header: 'Artifact Name & Pipeline',
+      header: 'Artifact Name',
       sortValue: art => art.name,
       hideable: false,
       searchable: true,
-      searchValue: art => `${art.name} ${art.description} ${art.id}`,
-      cellClassName: 'min-w-[220px]',
+      searchValue: art => art.name,
+      cellClassName: 'min-w-[200px]',
       render: art => (
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 border border-surface-border flex items-center justify-center text-brand-navy dark:text-brand-blue flex-shrink-0 mt-0.5">
-            <Cpu className="w-4 h-4 text-brand-coral" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 border border-surface-border flex items-center justify-center text-brand-navy dark:text-brand-blue flex-shrink-0">
+            <Cpu className="w-3.5 h-3.5 text-brand-coral" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-ink-primary text-xs">{art.name}</span>
-              <span className="font-mono text-[9px] text-ink-secondary bg-brand-navy/[0.04] dark:bg-white/5 px-1.5 py-0.2 rounded border border-brand-navy/[0.06]">
-                {art.id}
-              </span>
-            </div>
-            <p className="text-[11px] text-ink-secondary line-clamp-1 mt-0.5 font-normal">{art.description}</p>
-          </div>
+          <span className="font-bold text-ink-primary text-xs font-display">{art.name}</span>
         </div>
       ),
     },
@@ -84,6 +76,13 @@ export const ArtifactsPage: React.FC = () => {
       sortValue: art => art.currentVersion,
       cellClassName: 'font-mono text-xs font-bold text-ink-primary tabular-nums',
       render: art => art.currentVersion,
+    },
+    {
+      id: 'updated',
+      header: 'Last Updated',
+      sortValue: art => art.updatedAt,
+      cellClassName: 'text-ink-secondary font-mono text-[11px] tabular-nums whitespace-nowrap',
+      render: art => art.updatedAt.split('T')[0],
     },
     {
       id: 'projects',
@@ -121,13 +120,6 @@ export const ArtifactsPage: React.FC = () => {
       header: 'Validation Health',
       cellClassName: 'whitespace-nowrap',
       render: () => <ValidationHealthPill />,
-    },
-    {
-      id: 'updated',
-      header: 'Last Updated',
-      sortValue: art => art.updatedAt,
-      cellClassName: 'text-ink-secondary font-mono text-[11px] tabular-nums whitespace-nowrap',
-      render: art => art.updatedAt.split('T')[0],
     },
     {
       id: 'actions',

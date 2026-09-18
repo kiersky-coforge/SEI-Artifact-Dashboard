@@ -117,16 +117,13 @@ export const ProjectDetailPage: React.FC = () => {
   const linkedArtifactColumns: ColumnDef<Artifact>[] = [
     {
       id: 'name',
-      header: 'Artifact Pipeline',
+      header: 'Artifact Name',
       sortValue: art => art.name,
       hideable: false,
       searchable: true,
-      searchValue: art => `${art.name} ${art.description}`,
+      searchValue: art => art.name,
       render: art => (
-        <>
-          <div className="font-bold text-ink-primary text-xs">{art.name}</div>
-          <div className="text-[11px] text-ink-secondary line-clamp-1 mt-0.5">{art.description}</div>
-        </>
+        <div className="font-bold text-ink-primary text-xs font-display">{art.name}</div>
       ),
     },
     {
@@ -144,6 +141,13 @@ export const ProjectDetailPage: React.FC = () => {
       sortValue: art => art.currentVersion,
       cellClassName: 'font-mono text-xs font-bold text-ink-primary tabular-nums',
       render: art => art.currentVersion,
+    },
+    {
+      id: 'updated',
+      header: 'Last Updated',
+      sortValue: art => art.updatedAt,
+      cellClassName: 'text-ink-secondary font-mono text-[11px] tabular-nums whitespace-nowrap',
+      render: art => art.updatedAt.split('T')[0],
     },
     {
       id: 'validation',
