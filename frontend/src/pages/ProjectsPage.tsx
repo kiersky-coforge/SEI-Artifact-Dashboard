@@ -207,8 +207,7 @@ export const ProjectsPage: React.FC = () => {
       align: 'center',
       cellClassName: 'tabular-nums',
       render: proj => (
-        <span className="inline-flex items-center gap-1 font-mono text-xs font-bold px-2 py-0.5 rounded-level1 bg-brand-navy/[0.04] dark:bg-white/10 text-brand-navy dark:text-white border border-brand-navy/10">
-          <Cpu className="w-3 h-3 text-brand-coral" />
+        <span className="font-mono text-xs font-bold text-ink-primary tabular-nums">
           {proj.artifactIds.length}
         </span>
       ),
@@ -255,125 +254,123 @@ export const ProjectsPage: React.FC = () => {
     const assignedUsers = users.filter(u => (proj.userIds || []).includes(u.id) || u.projectIds.includes(proj.id));
 
     return (
-      <div className="bg-brand-navy/[0.015] dark:bg-white/[0.02] p-4 sm:p-5">
-        <div className="rounded-level3 bg-surface border border-surface-border p-5 space-y-4 shadow-level1">
-          {/* Sub-Panel Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-surface-border">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary">
-                Project Workspace Bindings
-              </p>
-              <h4 className="text-xl font-bold uppercase text-ink-primary font-display mt-0.5">{proj.name}</h4>
-              <p className="text-xs text-ink-secondary mt-1">
-                {proj.description || 'No detailed project description recorded.'}
-              </p>
-            </div>
+      <div className="px-6 py-5 bg-brand-navy/[0.02] dark:bg-white/[0.02] border-t border-b border-surface-border space-y-4">
+        {/* Sub-Panel Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-surface-border">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary">
+              Project Workspace Bindings
+            </p>
+            <h4 className="text-lg font-bold uppercase text-ink-primary font-display mt-0.5">{proj.name}</h4>
+            <p className="text-xs text-ink-secondary mt-1">
+              {proj.description || 'No detailed project description recorded.'}
+            </p>
+          </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => setAssigningProjectId(proj.id)}
-                className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              >
-                <UserPlus className="w-3.5 h-3.5 text-brand-blue" />
-                <span>Assign User</span>
-              </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setAssigningProjectId(proj.id)}
+              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-brand-blue" />
+              <span>Assign User</span>
+            </button>
+            <button
+              onClick={() => setLinkingProjectId(proj.id)}
+              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Link2 className="w-3.5 h-3.5 text-brand-coral" />
+              <span>Attach Artifact</span>
+            </button>
+            <Link
+              to={`/projects/${proj.id}`}
+              className="px-3.5 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-level1"
+            >
+              <span>Open Full Workspace</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+            <button
+              type="button"
+              onClick={e => handleDeleteProject(e, proj.id, proj.name)}
+              className="p-1.5 rounded-level2 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 border border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              title="Delete Project"
+              aria-label={`Delete project ${proj.name}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Attached Artifacts Sub-Table */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
+              <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
+            </p>
+            <span className="text-[10px] font-mono text-ink-secondary">Reusable Prompt Schemas</span>
+          </div>
+
+          {linkedArts.length === 0 ? (
+            <div className="p-6 rounded-level2 bg-surface dark:bg-surface-elevated border border-dashed border-brand-navy/[0.1] text-center space-y-2">
+              <Cpu className="w-6 h-6 mx-auto text-ink-secondary opacity-50" />
+              <p className="text-xs font-bold text-ink-secondary uppercase tracking-wide">
+                No prompt pipelines currently linked to this project
+              </p>
               <button
                 onClick={() => setLinkingProjectId(proj.id)}
-                className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
               >
-                <Link2 className="w-3.5 h-3.5 text-brand-coral" />
-                <span>Attach Artifact</span>
-              </button>
-              <Link
-                to={`/projects/${proj.id}`}
-                className="px-3.5 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-level1"
-              >
-                <span>Open Full Workspace</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
-              <button
-                type="button"
-                onClick={e => handleDeleteProject(e, proj.id, proj.name)}
-                className="p-1.5 rounded-level2 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 border border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                title="Delete Project"
-                aria-label={`Delete project ${proj.name}`}
-              >
-                <Trash2 className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" /> Link existing artifact now
               </button>
             </div>
-          </div>
+          ) : (
+            <DataTable<Artifact>
+              columns={getLinkedArtifactSubColumns(proj.id)}
+              data={linkedArts}
+              getRowKey={art => art.id}
+            />
+          )}
+        </div>
 
-          {/* Attached Artifacts Sub-Table */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
-              </p>
-              <span className="text-[10px] font-mono text-ink-secondary">Reusable Prompt Schemas</span>
-            </div>
-
-            {linkedArts.length === 0 ? (
-              <div className="p-6 rounded-level2 bg-brand-navy/[0.02] dark:bg-white/[0.02] border border-dashed border-brand-navy/[0.1] text-center space-y-2">
-                <Cpu className="w-6 h-6 mx-auto text-ink-secondary opacity-50" />
-                <p className="text-xs font-bold text-ink-secondary uppercase tracking-wide">
-                  No prompt pipelines currently linked to this project
-                </p>
-                <button
-                  onClick={() => setLinkingProjectId(proj.id)}
-                  className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Link existing artifact now
-                </button>
-              </div>
+        {/* Assigned Team Members Row */}
+        <div className="pt-2 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-ink-secondary uppercase tracking-widest text-[10px]">Assigned Roster:</span>
+            {assignedUsers.length === 0 ? (
+              <span className="text-ink-secondary italic text-xs">No team members assigned</span>
             ) : (
-              <DataTable<Artifact>
-                columns={getLinkedArtifactSubColumns(proj.id)}
-                data={linkedArts}
-                getRowKey={art => art.id}
-              />
-            )}
-          </div>
-
-          {/* Assigned Team Members Row */}
-          <div className="pt-2 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-ink-secondary uppercase tracking-widest text-[10px]">Assigned Roster:</span>
-              {assignedUsers.length === 0 ? (
-                <span className="text-ink-secondary italic text-xs">No team members assigned</span>
-              ) : (
-                assignedUsers.map(u => (
-                  <span
-                    key={u.id}
-                    className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-0.5 rounded-full bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-ink-primary font-bold text-[10px] uppercase tracking-wider group"
+              assignedUsers.map(u => (
+                <span
+                  key={u.id}
+                  className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-0.5 rounded-full bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-ink-primary font-bold text-[10px] uppercase tracking-wider group"
+                >
+                  <Link to={`/users/${u.id}`} className="hover:underline flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-brand-navy dark:bg-seic-blue" />
+                    {u.name}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => detachUserFromProject(proj.id, u.id)}
+                    className="p-0.5 rounded-full hover:bg-alert-coral/10 hover:text-alert-coral text-ink-muted transition-colors"
+                    title={`Unassign ${u.name}`}
+                    aria-label={`Unassign ${u.name}`}
                   >
-                    <Link to={`/users/${u.id}`} className="hover:underline flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-brand-navy dark:bg-seic-blue" />
-                      {u.name}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => detachUserFromProject(proj.id, u.id)}
-                      className="p-0.5 rounded-full hover:bg-alert-coral/10 hover:text-alert-coral text-ink-muted transition-colors"
-                      title={`Unassign ${u.name}`}
-                      aria-label={`Unassign ${u.name}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))
-              )}
-              <button
-                type="button"
-                onClick={() => setAssigningProjectId(proj.id)}
-                className="text-[10px] text-brand-blue font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 ml-1"
-              >
-                <Plus className="w-3 h-3" /> Add User
-              </button>
-            </div>
-            <span className="text-[10px] text-ink-secondary font-mono tabular-nums">
-              Created: {proj.createdAt.split('T')[0]}
-            </span>
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))
+            )}
+            <button
+              type="button"
+              onClick={() => setAssigningProjectId(proj.id)}
+              className="text-[10px] text-brand-blue font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 ml-1"
+            >
+              <Plus className="w-3 h-3" /> Add User
+            </button>
           </div>
+          <span className="text-[10px] text-ink-secondary font-mono tabular-nums">
+            Created: {proj.createdAt.split('T')[0]}
+          </span>
         </div>
       </div>
     );
