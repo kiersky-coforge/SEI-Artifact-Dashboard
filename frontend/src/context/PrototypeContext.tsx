@@ -32,6 +32,10 @@ interface PrototypeContextType {
   createUser: (name: string, email: string, roles: User['roles'], projectIds: string[]) => User;
   updateUser: (id: string, updates: Partial<User>) => void;
   deleteUser: (id: string) => void;
+  assignUserToProject: (projectId: string, userId: string) => void;
+  detachUserFromProject: (projectId: string, userId: string) => void;
+  setUserProjects: (userId: string, projectIds: string[]) => void;
+  setProjectUsers: (projectId: string, userIds: string[]) => void;
   
   // Reset
   resetData: () => void;
@@ -139,6 +143,12 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       prev.map(a => ({
         ...a,
         projectIds: a.projectIds.filter(pid => pid !== id),
+      }))
+    );
+    setUsers(prev =>
+      prev.map(u => ({
+        ...u,
+        projectIds: u.projectIds.filter(pid => pid !== id),
       }))
     );
   };
@@ -346,7 +356,7 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // User Actions
-  const createUser = (name: string, email: string, roles: User['roles'], projectIds: string[]): User => {
+  const createUser = (name: string, email: string, roles: User['roles'], projectIds: string[] = []): User => {
     const newUser: User = {
       id: `usr-${Date.now()}`,
       name,
@@ -358,15 +368,111 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       lastLoginAt: new Date().toISOString(),
     };
     setUsers(prev => [...prev, newUser]);
+
+    if (projectIds.length > 0) {
+      setProjects(prev =>
+        prev.map(p =>
+          projectIds.includes(p.id)
+            ? { ...p, userIds: Array.from(new Set([...(p.userIds || []), newUser.id])), updatedAt: new Date().toISOString() }
+            : p
+        )
+      );
+    }
+
     return newUser;
   };
 
   const updateUser = (id: string, updates: Partial<User>) => {
     setUsers(prev => prev.map(u => (u.id === id ? { ...u, ...updates } : u)));
+
+    if (updates.projectIds) {
+      const nextProjectIds = updates.projectIds;
+      setProjects(prev =>
+        prev.map(p => {
+          const hasUser = p.userIds?.includes(id);
+          const shouldHaveUser = nextProjectIds.includes(p.id);
+          if (hasUser && !shouldHaveUser) {
+            return { ...p, userIds: p.userIds.filter(uid => uid !== id), updatedAt: new Date().toISOString() };
+          }
+          if (!hasUser && shouldHaveUser) {
+            return { ...p, userIds: [...(p.userIds || []), id], updatedAt: new Date().toISOString() };
+          }
+          return p;
+        })
+      );
+    }
   };
 
   const deleteUser = (id: string) => {
     setUsers(prev => prev.filter(u => u.id !== id));
+    setProjects(prev =>
+      prev.map(p => ({
+        ...p,
+        userIds: (p.userIds || []).filter(uid => uid !== id),
+        updatedAt: new Date().toISOString(),
+      }))
+    );
+  };
+
+  const assignUserToProject = (projectId: string, userId: string) => {
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === projectId && !(p.userIds || []).includes(userId)
+          ? { ...p, userIds: [...(p.userIds || []), userId], updatedAt: new Date().toISOString() }
+          : p
+      )
+    );
+    setUsers(prev =>
+      prev.map(u =>
+        u.id === userId && !u.projectIds.includes(projectId)
+          ? { ...u, projectIds: [...u.projectIds, projectId] }
+          : u
+      )
+    );
+  };
+
+  const detachUserFromProject = (projectId: string, userId: string) => {
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === projectId
+          ? { ...p, userIds: (p.userIds || []).filter(uid => uid !== userId), updatedAt: new Date().toISOString() }
+          : p
+      )
+    );
+    setUsers(prev =>
+      prev.map(u =>
+        u.id === userId
+          ? { ...u, projectIds: u.projectIds.filter(pid => pid !== projectId) }
+          : u
+      )
+    );
+  };
+
+  const setUserProjects = (userId: string, projectIds: string[]) => {
+    updateUser(userId, { projectIds });
+  };
+
+  const setProjectUsers = (projectId: string, userIds: string[]) => {
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === projectId
+          ? { ...p, userIds, updatedAt: new Date().toISOString() }
+          : p
+      )
+    );
+    setUsers(prev =>
+      prev.map(u => {
+        const hasProject = u.projectIds.includes(projectId);
+        const shouldHaveProject = userIds.includes(u.id);
+        if (hasProject && !shouldHaveProject) {
+          return { ...u, projectIds: u.projectIds.filter(pid => pid !== projectId) };
+        }
+        if (!hasProject && shouldHaveProject) {
+          return { ...u, projectIds: [...u.projectIds, projectId] };
+        }
+        return u;
+      })
+    );
   };
 
   return (
@@ -395,6 +501,10 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createUser,
         updateUser,
         deleteUser,
+        assignUserToProject,
+        detachUserFromProject,
+        setUserProjects,
+        setProjectUsers,
         resetData,
       }}
     >

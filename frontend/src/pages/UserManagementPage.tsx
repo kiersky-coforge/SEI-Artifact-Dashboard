@@ -1,73 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { usePrototype } from '../context/PrototypeContext';
 import { Button } from '../components/atoms/Button';
 import { StatusBadge } from '../components/atoms/StatusBadge';
 import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
 import { Input } from '../components/atoms/Input';
+import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import {
   Plus,
-  UserX,
-  UserCheck,
-  Trash2,
-  Edit,
   FolderKanban,
   Users,
+  ChevronRight,
+  Search,
 } from 'lucide-react';
 import type { User, UserRole } from '../../../shared/types';
 
 export const UserManagementPage: React.FC = () => {
-  const { users, projects, createUser, updateUser, deleteUser } = usePrototype();
+  const navigate = useNavigate();
+  const { users, projects, createUser } = usePrototype();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>(['developer']);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [modalProjectSearch, setModalProjectSearch] = useState('');
+
+  const filteredModalProjects = useMemo(() => {
+    if (!modalProjectSearch.trim()) return projects;
+    const q = modalProjectSearch.toLowerCase();
+    return projects.filter(
+      p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q))
+    );
+  }, [projects, modalProjectSearch]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
-    createUser(name, email, selectedRoles, selectedProjects);
+    const created = createUser(name, email, selectedRoles, selectedProjects);
     setName('');
     setEmail('');
     setSelectedRoles(['developer']);
     setSelectedProjects([]);
+    setModalProjectSearch('');
     setIsCreateOpen(false);
-  };
-
-  const handleOpenEdit = (user: User) => {
-    setEditingUser(user);
-    setName(user.name);
-    setEmail(user.email);
-    setSelectedRoles(user.roles);
-    setSelectedProjects(user.projectIds);
-  };
-
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-    updateUser(editingUser.id, {
-      name,
-      email,
-      roles: selectedRoles,
-      projectIds: selectedProjects,
-    });
-    setEditingUser(null);
-  };
-
-  const handleToggleStatus = (user: User) => {
-    updateUser(user.id, {
-      status: user.status === 'active' ? 'disabled' : 'active',
-    });
-  };
-
-  const handleDelete = (user: User) => {
-    if (confirm(`Are you sure you want to delete user "${user.name}"?`)) {
-      deleteUser(user.id);
-    }
+    navigate(`/users/${created.id}`);
   };
 
   const allRoles: { id: UserRole; label: string; desc: string }[] = [
@@ -88,15 +67,15 @@ export const UserManagementPage: React.FC = () => {
       render: user => {
         const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
         return (
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-level3 bg-brand-navy dark:bg-seic-blue text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-level1">
+          <Link to={`/users/${user.id}`} className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded">
+            <div className="w-9 h-9 rounded-level3 bg-brand-navy dark:bg-seic-blue text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-level1 group-hover:scale-105 transition-transform">
               {initials}
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-ink-primary text-xs">{user.name}</div>
+              <div className="font-bold text-ink-primary text-xs group-hover:text-brand-coral transition-colors">{user.name}</div>
               <div className="text-[11px] text-ink-secondary font-mono mt-0.5">{user.email}</div>
             </div>
-          </div>
+          </Link>
         );
       },
     },
@@ -173,35 +152,14 @@ export const UserManagementPage: React.FC = () => {
       hideable: false,
       cellClassName: 'whitespace-nowrap',
       render: user => (
-        <div className="flex items-center justify-end gap-1.5">
-          <button
-            onClick={e => { e.stopPropagation(); handleOpenEdit(user); }}
-            className="p-1.5 rounded-level2 text-ink-secondary hover:text-brand-navy dark:hover:text-white hover:bg-brand-navy/[0.05] border border-input transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Edit Roles & Projects"
-            aria-label={`Edit roles and projects for ${user.name}`}
+        <div className="flex items-center justify-end">
+          <Link
+            to={`/users/${user.id}`}
+            className="px-3 py-1.5 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 hover:bg-brand-navy hover:text-white text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
-            <Edit className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            onClick={e => { e.stopPropagation(); handleToggleStatus(user); }}
-            className={`p-1.5 rounded-level2 border border-input hover:bg-brand-navy/[0.05] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${
-              user.status === 'active' ? 'text-brand-coral hover:text-alert-coral' : 'text-brand-green hover:text-brand-green/80'
-            }`}
-            title={user.status === 'active' ? 'Disable User' : 'Enable User'}
-            aria-label={user.status === 'active' ? `Disable ${user.name}` : `Enable ${user.name}`}
-          >
-            {user.status === 'active' ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
-          </button>
-
-          <button
-            onClick={e => { e.stopPropagation(); handleDelete(user); }}
-            className="p-1.5 rounded-level2 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 border border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Delete User"
-            aria-label={`Delete ${user.name}`}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+            <span>Manage</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       ),
     },
@@ -225,6 +183,7 @@ export const UserManagementPage: React.FC = () => {
         columns={userColumns}
         data={users}
         getRowKey={user => user.id}
+        onRowClick={user => navigate(`/users/${user.id}`)}
         emptyState={
           <>
             <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-ink-secondary" />
@@ -310,30 +269,61 @@ export const UserManagementPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1.5">
-              Assign Projects
-            </label>
-            <div className="space-y-1.5 max-h-36 overflow-y-auto border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
-              {projects.map(p => (
-                <label
-                  key={p.id}
-                  className="flex items-center gap-2.5 p-1.5 rounded-level1 hover:bg-surface-hover cursor-pointer text-xs transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedProjects.includes(p.id)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setSelectedProjects([...selectedProjects, p.id]);
-                      } else {
-                        setSelectedProjects(selectedProjects.filter(id => id !== p.id));
-                      }
-                    }}
-                    className="rounded border-input text-brand-navy focus:ring-focus"
-                  />
-                  <span className="font-bold text-ink-primary">{p.name}</span>
-                </label>
-              ))}
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary">
+                Assign Projects ({selectedProjects.length} selected)
+              </label>
+              {projects.length > 4 && (
+                <span className="text-[10px] font-mono text-ink-secondary">
+                  {filteredModalProjects.length} matches
+                </span>
+              )}
+            </div>
+
+            {projects.length > 4 && (
+              <div className="mb-2">
+                <SearchInput
+                  value={modalProjectSearch}
+                  onChange={setModalProjectSearch}
+                  placeholder="Filter projects..."
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5 max-h-40 overflow-y-auto border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
+              {filteredModalProjects.length === 0 ? (
+                <div className="p-4 text-center text-xs text-ink-secondary">
+                  <Search className="w-4 h-4 mx-auto mb-1 opacity-50" />
+                  No projects match "{modalProjectSearch}"
+                </div>
+              ) : (
+                filteredModalProjects.map(p => (
+                  <label
+                    key={p.id}
+                    className="flex items-center justify-between p-2 rounded-level1 hover:bg-surface-hover cursor-pointer text-xs transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedProjects.includes(p.id)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedProjects([...selectedProjects, p.id]);
+                          } else {
+                            setSelectedProjects(selectedProjects.filter(id => id !== p.id));
+                          }
+                        }}
+                        className="rounded border-input text-brand-navy focus:ring-focus"
+                      />
+                      <span className="font-bold text-ink-primary truncate">{p.name}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-ink-secondary flex-shrink-0">
+                      {p.artifactIds?.length || 0} artifacts
+                    </span>
+                  </label>
+                ))
+              )}
             </div>
           </div>
 
@@ -342,120 +332,7 @@ export const UserManagementPage: React.FC = () => {
               Cancel
             </Button>
             <Button variant="coral" type="submit">
-              Add User
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit User Modal */}
-      <Modal
-        isOpen={!!editingUser}
-        onClose={() => setEditingUser(null)}
-        title="Edit User Permissions"
-        subtitle={`Update roles and project access for ${editingUser?.name}.`}
-      >
-        <form onSubmit={handleSaveEdit} className="space-y-4">
-          <div>
-            <label htmlFor="edit-user-name" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-              Full Name *
-            </label>
-            <Input
-              id="edit-user-name"
-              type="text"
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="edit-user-email" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-              Email Address *
-            </label>
-            <Input
-              id="edit-user-email"
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1.5">
-              Assigned Roles *
-            </label>
-            <div className="space-y-2">
-              {allRoles.map(r => {
-                const isSelected = selectedRoles.includes(r.id);
-                return (
-                  <label
-                    key={r.id}
-                    className={`flex items-start gap-2.5 p-2.5 rounded-level2 border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-brand-navy/[0.04] border-brand-navy dark:border-white/30'
-                        : 'border-surface-border hover:bg-brand-navy/[0.02]'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setSelectedRoles([...selectedRoles, r.id]);
-                        } else {
-                          if (selectedRoles.length > 1) {
-                            setSelectedRoles(selectedRoles.filter(id => id !== r.id));
-                          }
-                        }
-                      }}
-                      className="mt-0.5 rounded border-input text-brand-navy focus:ring-focus"
-                    />
-                    <div>
-                      <div className="font-bold text-xs text-ink-primary uppercase">{r.label}</div>
-                      <div className="text-[11px] text-ink-secondary font-normal">{r.desc}</div>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1.5">
-              Project Assignments
-            </label>
-            <div className="space-y-1.5 max-h-36 overflow-y-auto border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
-              {projects.map(p => (
-                <label
-                  key={p.id}
-                  className="flex items-center gap-2.5 p-1.5 rounded-level1 hover:bg-surface-hover cursor-pointer text-xs transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedProjects.includes(p.id)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setSelectedProjects([...selectedProjects, p.id]);
-                      } else {
-                        setSelectedProjects(selectedProjects.filter(id => id !== p.id));
-                      }
-                    }}
-                    className="rounded border-input text-brand-navy focus:ring-focus"
-                  />
-                  <span className="font-bold text-ink-primary">{p.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
-            <Button variant="secondary" onClick={() => setEditingUser(null)} type="button">
-              Cancel
-            </Button>
-            <Button variant="coral" type="submit">
-              Save Changes
+              Create & Manage
             </Button>
           </div>
         </form>

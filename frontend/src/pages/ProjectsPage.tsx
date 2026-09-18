@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { usePrototype } from '../context/PrototypeContext';
 import { Button } from '../components/atoms/Button';
@@ -8,6 +8,7 @@ import { HeaderBar } from '../components/molecules/HeaderBar';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
 import { Select } from '../components/atoms/Select';
+import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import { PipelineStageBadges } from '../components/molecules/PipelineStageBadges';
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
@@ -19,6 +20,9 @@ import {
   Unlink,
   ExternalLink,
   Trash2,
+  UserPlus,
+  X,
+  Search,
 } from 'lucide-react';
 import type { Project, Artifact } from '../../../shared/types';
 
@@ -30,6 +34,8 @@ export const ProjectsPage: React.FC = () => {
     createProject,
     linkArtifactToProject,
     unlinkArtifactFromProject,
+    assignUserToProject,
+    detachUserFromProject,
     deleteProject,
   } = usePrototype();
 
@@ -43,20 +49,12 @@ export const ProjectsPage: React.FC = () => {
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
   const [artifactToLink, setArtifactToLink] = useState<string>('');
 
+  const [assigningProjectId, setAssigningProjectId] = useState<string | null>(null);
+  const [selectedUsersToAssign, setSelectedUsersToAssign] = useState<string[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+
   const toggleRow = (id: string) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const expandAll = () => {
-    const allExpanded: Record<string, boolean> = {};
-    projects.forEach(p => {
-      allExpanded[p.id] = true;
-    });
-    setExpandedRows(allExpanded);
-  };
-
-  const collapseAll = () => {
-    setExpandedRows({});
   };
 
   const handleCreate = (e: React.FormEvent) => {
@@ -77,6 +75,14 @@ export const ProjectsPage: React.FC = () => {
     setArtifactToLink('');
   };
 
+  const handleAssignUsers = () => {
+    if (!assigningProjectId) return;
+    selectedUsersToAssign.forEach(uid => assignUserToProject(assigningProjectId, uid));
+    setAssigningProjectId(null);
+    setSelectedUsersToAssign([]);
+    setUserSearchQuery('');
+  };
+
   const handleDeleteProject = (e: React.MouseEvent, id: string, projName: string) => {
     e.stopPropagation();
     if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
@@ -89,6 +95,26 @@ export const ProjectsPage: React.FC = () => {
     ? artifacts.filter(a => !targetProjectForLinking.artifactIds.includes(a.id))
     : [];
 
+  const targetProjectForAssigning = projects.find(p => p.id === assigningProjectId);
+  const unassignedUsers = targetProjectForAssigning
+    ? users.filter(
+        u =>
+          !(targetProjectForAssigning.userIds || []).includes(u.id) &&
+          !u.projectIds.includes(targetProjectForAssigning.id)
+      )
+    : [];
+
+  const filteredUnassignedUsers = useMemo(() => {
+    if (!userSearchQuery.trim()) return unassignedUsers;
+    const q = userSearchQuery.toLowerCase();
+    return unassignedUsers.filter(
+      u =>
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        u.roles.some(r => r.toLowerCase().includes(q))
+    );
+  }, [unassignedUsers, userSearchQuery]);
+
   const getLinkedArtifactSubColumns = (projectId: string): ColumnDef<Artifact>[] => [
     {
       id: 'name',
@@ -98,7 +124,7 @@ export const ProjectsPage: React.FC = () => {
       render: art => (
         <>
           <div className="font-bold text-ink-primary">{art.name}</div>
-          <div className="text-[10px] text-ink-secondary line-clamp-1 font-normal">{art.description}</div>
+          <div className="text-[11px] text-ink-secondary line-clamp-1">{art.description}</div>
         </>
       ),
     },
@@ -116,7 +142,7 @@ export const ProjectsPage: React.FC = () => {
     {
       id: 'version',
       header: 'Active Version',
-      cellClassName: 'font-mono text-[11px] font-bold text-brand-navy dark:text-brand-blue tabular-nums',
+      cellClassName: 'font-mono text-xs font-bold text-brand-navy dark:text-brand-blue tabular-nums',
       render: art => art.currentVersion,
     },
     {
@@ -134,15 +160,18 @@ export const ProjectsPage: React.FC = () => {
         <div className="flex items-center justify-end gap-1.5">
           <Link
             to={`/artifacts/${art.id}`}
-            onClick={e => e.stopPropagation()}
-            className="px-2.5 py-1 rounded-level2 bg-brand-navy/[0.04] hover:bg-brand-navy hover:text-white text-brand-navy dark:text-white font-bold text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1"
+            className="p-1 rounded text-ink-secondary hover:text-brand-navy dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            title="Open Editor & Schema"
+            aria-label={`Open editor for ${art.name}`}
           >
-            <span>Open Hub</span>
-            <ExternalLink className="w-3 h-3" />
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
           <button
-            onClick={e => { e.stopPropagation(); unlinkArtifactFromProject(projectId, art.id); }}
-            className="p-1 rounded text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            onClick={e => {
+              e.stopPropagation();
+              unlinkArtifactFromProject(projectId, art.id);
+            }}
+            className="p-1 rounded text-ink-secondary hover:text-alert-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             title="Unlink Artifact from Project"
             aria-label={`Unlink ${art.name} from project`}
           >
@@ -160,28 +189,25 @@ export const ProjectsPage: React.FC = () => {
       sortValue: proj => proj.name,
       hideable: false,
       searchable: true,
-      searchValue: proj => `${proj.name} ${proj.description} ${proj.id}`,
+      searchValue: proj => `${proj.name} ${proj.description}`,
       cellClassName: 'min-w-[200px]',
       render: proj => (
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-level2 bg-brand-navy/[0.04] dark:bg-white/5 border border-surface-border flex items-center justify-center text-brand-navy dark:text-brand-blue flex-shrink-0">
-            <FolderKanban className="w-3.5 h-3.5" />
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-bold text-ink-primary text-xs truncate">{proj.name}</span>
-            <span className="font-mono text-[9px] text-ink-secondary bg-brand-navy/[0.04] dark:bg-white/5 px-1.5 py-0.2 rounded border border-brand-navy/[0.06] flex-shrink-0">
-              {proj.id}
-            </span>
+        <div className="min-w-0">
+          <div className="font-bold text-ink-primary text-xs font-display flex items-center gap-1.5">
+            <FolderKanban className="w-3.5 h-3.5 text-brand-navy dark:text-brand-blue flex-shrink-0" />
+            <span className="truncate">{proj.name}</span>
           </div>
         </div>
       ),
     },
     {
       id: 'artifacts',
-      header: 'Artifacts',
+      header: 'Artifact Number',
       sortValue: proj => proj.artifactIds.length,
+      align: 'center',
+      cellClassName: 'tabular-nums',
       render: proj => (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-navy text-white shadow-level1 font-mono uppercase tracking-wider">
+        <span className="inline-flex items-center gap-1 font-mono text-xs font-bold px-2 py-0.5 rounded-level1 bg-brand-navy/[0.04] dark:bg-white/10 text-brand-navy dark:text-white border border-brand-navy/10">
           <Cpu className="w-3 h-3 text-brand-coral" />
           {proj.artifactIds.length}
         </span>
@@ -190,13 +216,8 @@ export const ProjectsPage: React.FC = () => {
     {
       id: 'owner',
       header: 'Owner',
-      sortValue: proj => {
-        const u = users.find(user => user.projectIds.includes(proj.id));
-        return u?.name || 'Unassigned';
-      },
       render: proj => {
-        const assignedUsers = users.filter(u => u.projectIds.includes(proj.id));
-        const owner = assignedUsers[0];
+        const owner = users.find(u => (proj.userIds || []).includes(u.id) || u.projectIds.includes(proj.id));
         if (!owner) {
           return <span className="text-ink-secondary text-xs italic">Unassigned</span>;
         }
@@ -231,7 +252,7 @@ export const ProjectsPage: React.FC = () => {
 
   const renderExpandedProject = (proj: Project) => {
     const linkedArts = artifacts.filter(a => proj.artifactIds.includes(a.id));
-    const assignedUsers = users.filter(u => u.projectIds.includes(proj.id));
+    const assignedUsers = users.filter(u => (proj.userIds || []).includes(u.id) || u.projectIds.includes(proj.id));
 
     return (
       <div className="bg-brand-navy/[0.015] dark:bg-white/[0.02] p-4 sm:p-5">
@@ -248,7 +269,14 @@ export const ProjectsPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setAssigningProjectId(proj.id)}
+                className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-brand-blue" />
+                <span>Assign User</span>
+              </button>
               <button
                 onClick={() => setLinkingProjectId(proj.id)}
                 className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -310,16 +338,37 @@ export const ProjectsPage: React.FC = () => {
           <div className="pt-2 border-t border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-ink-secondary uppercase tracking-widest text-[10px]">Assigned Roster:</span>
-              {assignedUsers.map(u => (
-                <span
-                  key={u.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-ink-primary font-bold text-[10px] uppercase tracking-wider"
-                >
-                  <span className="w-2 h-2 rounded-full bg-brand-navy dark:bg-seic-blue" />
-                  {u.name}
-                  <span className="text-[9px] text-ink-secondary">({u.roles.join(', ')})</span>
-                </span>
-              ))}
+              {assignedUsers.length === 0 ? (
+                <span className="text-ink-secondary italic text-xs">No team members assigned</span>
+              ) : (
+                assignedUsers.map(u => (
+                  <span
+                    key={u.id}
+                    className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-0.5 rounded-full bg-brand-navy/[0.04] dark:bg-white/5 border border-brand-navy/[0.08] text-ink-primary font-bold text-[10px] uppercase tracking-wider group"
+                  >
+                    <Link to={`/users/${u.id}`} className="hover:underline flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-brand-navy dark:bg-seic-blue" />
+                      {u.name}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => detachUserFromProject(proj.id, u.id)}
+                      className="p-0.5 rounded-full hover:bg-alert-coral/10 hover:text-alert-coral text-ink-muted transition-colors"
+                      title={`Unassign ${u.name}`}
+                      aria-label={`Unassign ${u.name}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              )}
+              <button
+                type="button"
+                onClick={() => setAssigningProjectId(proj.id)}
+                className="text-[10px] text-brand-blue font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 ml-1"
+              >
+                <Plus className="w-3 h-3" /> Add User
+              </button>
             </div>
             <span className="text-[10px] text-ink-secondary font-mono tabular-nums">
               Created: {proj.createdAt.split('T')[0]}
@@ -351,21 +400,10 @@ export const ProjectsPage: React.FC = () => {
         renderExpanded={renderExpandedProject}
         isRowExpanded={proj => !!expandedRows[proj.id]}
         onToggleExpand={proj => toggleRow(proj.id)}
-        tableCta={
-          <>
-            <Button variant="ghost" size="sm" onClick={expandAll}>
-              Expand All
-            </Button>
-            <Button variant="ghost" size="sm" onClick={collapseAll}>
-              Collapse All
-            </Button>
-          </>
-        }
         emptyState={
           <>
             <FolderKanban className="w-8 h-8 mx-auto mb-2 opacity-40 text-ink-secondary" />
-            <p className="font-bold uppercase tracking-wide text-xs">No projects yet</p>
-            <p className="text-[11px] mt-1 text-ink-secondary">Create your first client workspace to get started</p>
+            <p className="font-bold uppercase tracking-wide text-xs">No workspaces configured yet</p>
           </>
         }
       />
@@ -374,8 +412,8 @@ export const ProjectsPage: React.FC = () => {
       <Modal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        title="Create New Project"
-        subtitle="Initialize a new client workspace to bind artifact pipelines and assign users."
+        title="Create Workspace Project"
+        subtitle="Initialize a new client workspace to bind extraction pipelines and schemas."
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
@@ -503,6 +541,101 @@ export const ProjectsPage: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Quick Assign Users Modal */}
+      <Modal
+        isOpen={!!assigningProjectId}
+        onClose={() => {
+          setAssigningProjectId(null);
+          setSelectedUsersToAssign([]);
+          setUserSearchQuery('');
+        }}
+        title="Assign Team to Workspace"
+        subtitle={`Grant workspace access to ${targetProjectForAssigning?.name || 'this project'}.`}
+      >
+        <div className="space-y-4">
+          <SearchInput
+            value={userSearchQuery}
+            onChange={setUserSearchQuery}
+            placeholder="Search by name, email, or role..."
+            className="w-full"
+          />
+
+          {unassignedUsers.length === 0 ? (
+            <p className="text-xs text-ink-secondary text-center py-4">All users are already assigned to this project.</p>
+          ) : filteredUnassignedUsers.length === 0 ? (
+            <div className="p-4 text-center text-xs text-ink-secondary">
+              <Search className="w-4 h-4 mx-auto mb-1 opacity-50" />
+              No unassigned users match "{userSearchQuery}".
+            </div>
+          ) : (
+            <div className="max-h-60 overflow-y-auto space-y-2 border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
+              {filteredUnassignedUsers.map(u => {
+                const isSelected = selectedUsersToAssign.includes(u.id);
+                const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                return (
+                  <label
+                    key={u.id}
+                    className={`flex items-center justify-between p-2 rounded-level1 cursor-pointer transition-colors ${
+                      isSelected ? 'bg-brand-navy/[0.05] dark:bg-white/10' : 'hover:bg-surface-hover'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedUsersToAssign([...selectedUsersToAssign, u.id]);
+                          } else {
+                            setSelectedUsersToAssign(selectedUsersToAssign.filter(uid => uid !== u.id));
+                          }
+                        }}
+                        className="rounded border-input text-brand-navy focus:ring-focus"
+                      />
+                      <div className="w-7 h-7 rounded-level2 bg-brand-navy dark:bg-seic-blue text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-ink-primary text-xs truncate">{u.name}</div>
+                        <div className="text-[10px] text-ink-secondary font-mono truncate">{u.email}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {u.roles.map(r => (
+                        <span key={r} className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-surface border border-surface-border text-ink-secondary">
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setAssigningProjectId(null);
+                setSelectedUsersToAssign([]);
+                setUserSearchQuery('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="coral"
+              disabled={selectedUsersToAssign.length === 0}
+              onClick={handleAssignUsers}
+            >
+              Assign Selected ({selectedUsersToAssign.length})
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
