@@ -10,7 +10,6 @@ import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import {
   Plus,
-  FolderKanban,
   Users,
   ChevronRight,
   Search,
@@ -106,28 +105,15 @@ export const UserManagementPage: React.FC = () => {
     },
     {
       id: 'workspaces',
-      header: 'Workspace Assignments',
-      render: user => {
-        const assignedProjs = projects.filter(p => user.projectIds.includes(p.id));
-        return (
-          <div className="flex flex-wrap gap-1 max-w-[240px]">
-            {assignedProjs.length === 0 ? (
-              <span className="text-ink-secondary text-[11px] italic">No projects assigned</span>
-            ) : (
-              assignedProjs.map(p => (
-                <span
-                  key={p.id}
-                  className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-level1 bg-brand-navy/[0.03] dark:bg-white/5 text-ink-primary border border-brand-navy/[0.06] truncate max-w-[140px]"
-                  title={p.name}
-                >
-                  <FolderKanban className="w-2.5 h-2.5 text-brand-navy dark:text-brand-blue" />
-                  <span className="truncate">{p.name}</span>
-                </span>
-              ))
-            )}
-          </div>
-        );
-      },
+      header: 'Workspaces',
+      sortValue: user => (user.projectIds || []).length,
+      align: 'center',
+      cellClassName: 'tabular-nums',
+      render: user => (
+        <span className="font-mono text-xs font-bold text-ink-primary tabular-nums">
+          {(user.projectIds || []).length}
+        </span>
+      ),
     },
     {
       id: 'status',
