@@ -23,6 +23,7 @@ interface PrototypeContextType {
   createArtifact: (name: string, description: string, initialProjectId?: string) => Artifact;
   updateArtifact: (id: string, updates: Partial<Artifact>) => void;
   publishArtifactVersion: (id: string, changelog?: string) => void;
+  createDraftVersion: (id: string) => void;
   revertArtifactVersion: (id: string, targetVersion: string) => void;
   deleteArtifact: (id: string) => void;
   validateArtifact: (id: string) => ValidationState;
@@ -387,6 +388,17 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
+  const createDraftVersion = (id: string) => {
+    const target = artifacts.find(a => a.id === id);
+    if (!target) return;
+
+    const nextDraftVersion = getNextDraftVersion(target.currentVersion, target.versions);
+    updateArtifact(id, {
+      status: 'draft',
+      currentVersion: nextDraftVersion,
+    });
+  };
+
   const revertArtifactVersion = (id: string, targetVersion: string) => {
     const target = artifacts.find(a => a.id === id);
     if (!target) return;
@@ -580,6 +592,7 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createArtifact,
         updateArtifact,
         publishArtifactVersion,
+        createDraftVersion,
         revertArtifactVersion,
         deleteArtifact,
         validateArtifact,

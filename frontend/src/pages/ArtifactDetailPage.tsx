@@ -35,6 +35,7 @@ export const ArtifactDetailPage: React.FC = () => {
     projects,
     updateArtifact,
     publishArtifactVersion,
+    createDraftVersion,
     revertArtifactVersion,
     deleteArtifact,
     validateArtifact,
@@ -247,6 +248,27 @@ export const ArtifactDetailPage: React.FC = () => {
 
   const activeVersionBase = artifact.currentVersion.replace(/-draft$/, '');
 
+  const nextPublishVersion = React.useMemo(() => {
+    if (!artifact) return '';
+    let ver = artifact.currentVersion.replace(/-draft$/, '');
+    if (ver === artifact.currentVersion && artifact.versions?.some(v => v.version === ver)) {
+      const match = ver.match(/^v?(\d+)\.(\d+)(?:\.(\d+))?/);
+      if (match) {
+        const major = parseInt(match[1], 10);
+        const minor = parseInt(match[2], 10);
+        ver = `v${major}.${minor + 1}.0`;
+      } else {
+        ver = `v${(artifact.versions?.length || 0) + 1}.0.0`;
+      }
+    }
+    return ver;
+  }, [artifact]);
+
+  const handleCreateNewDraft = () => {
+    createDraftVersion(artifact.id);
+    setActiveTab('editor');
+  };
+
   const reversedVersions = React.useMemo(() => {
     return [...(artifact.versions || [])].reverse();
   }, [artifact.versions]);
@@ -383,7 +405,7 @@ export const ArtifactDetailPage: React.FC = () => {
               onClick={() => setIsPublishModalOpen(true)}
               icon={<Send className="w-3.5 h-3.5" />}
             >
-              Publish Release
+              Publish {nextPublishVersion}
             </Button>
           </div>
         }
@@ -580,12 +602,12 @@ export const ArtifactDetailPage: React.FC = () => {
               </h3>
             </div>
             <Button
-              variant="coral"
+              variant="secondary"
               size="sm"
-              onClick={() => setIsPublishModalOpen(true)}
+              onClick={handleCreateNewDraft}
               icon={<Plus className="w-3.5 h-3.5" />}
             >
-              Tag New Release
+              New Draft
             </Button>
           </div>
 
@@ -616,8 +638,8 @@ export const ArtifactDetailPage: React.FC = () => {
       <Modal
         isOpen={isPublishModalOpen}
         onClose={() => setIsPublishModalOpen(false)}
-        title="Publish Release Version"
-        subtitle={`Create an immutable version snapshot from the current working draft of ${artifact.name}.`}
+        title={`Publish ${nextPublishVersion}`}
+        subtitle={`Create an immutable version release (${nextPublishVersion}) from the current working draft of ${artifact.name}.`}
       >
         <div className="space-y-4">
           <div>
@@ -628,7 +650,7 @@ export const ArtifactDetailPage: React.FC = () => {
               id="changelog-notes"
               rows={3}
               required
-              placeholder="e.g. Added Schedule K-1 Part III box parsing & updated currency validation regex..."
+              placeholder={`e.g. Release ${nextPublishVersion}: Added schema validation & prompt tuning...`}
               value={changelog}
               onChange={e => setChangelog(e.target.value)}
             />
@@ -639,7 +661,7 @@ export const ArtifactDetailPage: React.FC = () => {
               Cancel
             </Button>
             <Button variant="coral" onClick={handlePublishConfirm}>
-              Confirm & Tag Release
+              Publish {nextPublishVersion}
             </Button>
           </div>
         </div>
