@@ -7,10 +7,10 @@ import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
-import { Select } from '../components/atoms/Select';
 import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
+import { ArtifactSearchSelect } from '../components/molecules/ArtifactSearchSelect';
 import {
   Plus,
   FolderKanban,
@@ -42,7 +42,7 @@ export const ProjectsPage: React.FC = () => {
   const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
 
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
-  const [linkModalTab, setLinkModalTab] = useState<'existing' | 'new'>('existing');
+  const [linkSelectionMode, setLinkSelectionMode] = useState<'none' | 'new' | 'existing'>('none');
   const [artifactToLink, setArtifactToLink] = useState<string>('');
   const [newArtifactName, setNewArtifactName] = useState('');
   const [newArtifactDesc, setNewArtifactDesc] = useState('');
@@ -53,6 +53,21 @@ export const ProjectsPage: React.FC = () => {
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenLinkModal = (projectId: string) => {
+    setLinkingProjectId(projectId);
+    const target = projects.find(p => p.id === projectId);
+    const unlinked = target ? artifacts.filter(a => !target.artifactIds.includes(a.id)) : [];
+    if (unlinked.length > 0) {
+      setLinkSelectionMode('existing');
+      setArtifactToLink(unlinked[0].id);
+    } else {
+      setLinkSelectionMode('new');
+      setArtifactToLink('');
+    }
+    setNewArtifactName('');
+    setNewArtifactDesc('');
   };
 
   const handleCreate = (e: React.FormEvent) => {
@@ -69,10 +84,10 @@ export const ProjectsPage: React.FC = () => {
     e.preventDefault();
     if (!linkingProjectId) return;
 
-    if (linkModalTab === 'existing') {
+    if (linkSelectionMode === 'existing') {
       if (!artifactToLink) return;
       linkArtifactToProject(linkingProjectId, artifactToLink);
-    } else {
+    } else if (linkSelectionMode === 'new') {
       if (!newArtifactName.trim()) return;
       createArtifact(newArtifactName, newArtifactDesc, linkingProjectId);
     }
@@ -81,7 +96,7 @@ export const ProjectsPage: React.FC = () => {
     setArtifactToLink('');
     setNewArtifactName('');
     setNewArtifactDesc('');
-    setLinkModalTab('existing');
+    setLinkSelectionMode('none');
   };
 
   const handleAssignUsers = () => {
@@ -287,10 +302,7 @@ export const ProjectsPage: React.FC = () => {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => {
-                setLinkingProjectId(proj.id);
-                setLinkModalTab('existing');
-              }}
+              onClick={() => handleOpenLinkModal(proj.id)}
               icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
             >
               Link Artifact
@@ -304,10 +316,7 @@ export const ProjectsPage: React.FC = () => {
                 No prompt pipelines currently linked to this project
               </p>
               <button
-                onClick={() => {
-                  setLinkingProjectId(proj.id);
-                  setLinkModalTab('existing');
-                }}
+                onClick={() => handleOpenLinkModal(proj.id)}
                 className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
               >
                 <Plus className="w-3.5 h-3.5" /> Link artifact now
@@ -476,7 +485,7 @@ export const ProjectsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Quick Link Artifact Modal */}
+      {/* Link / Create Pipeline Artifact Modal */}
       <Modal
         isOpen={!!linkingProjectId}
         onClose={() => {
@@ -484,83 +493,36 @@ export const ProjectsPage: React.FC = () => {
           setArtifactToLink('');
           setNewArtifactName('');
           setNewArtifactDesc('');
-          setLinkModalTab('existing');
+          setLinkSelectionMode('none');
         }}
         title="Link Pipeline Artifact"
         subtitle={`Bind an existing or newly created artifact pipeline to ${targetProjectForLinking?.name || 'this project'}.`}
       >
-        <div className="space-y-4">
-          {/* Tab Switcher: Link Existing vs Create New */}
-          <div className="flex items-center gap-1 p-1 bg-brand-navy/[0.04] dark:bg-white/[0.04] rounded-level2 border border-surface-border">
-            <button
-              type="button"
-              onClick={() => setLinkModalTab('existing')}
-              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-level1 transition-all ${
-                linkModalTab === 'existing'
-                  ? 'bg-surface text-brand-navy dark:text-white shadow-sm'
-                  : 'text-ink-secondary hover:text-ink-primary'
-              }`}
-            >
-              Select Existing Artifact
-            </button>
-            <button
-              type="button"
-              onClick={() => setLinkModalTab('new')}
-              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-level1 transition-all ${
-                linkModalTab === 'new'
-                  ? 'bg-surface text-brand-navy dark:text-white shadow-sm'
-                  : 'text-ink-secondary hover:text-ink-primary'
-              }`}
-            >
-              + Create New Empty Artifact
-            </button>
-          </div>
+        <form onSubmit={handleLinkArtifact} className="space-y-4">
+          <ArtifactSearchSelect
+            artifacts={unlinkedArtifacts}
+            selectedMode={linkSelectionMode}
+            selectedArtifactId={artifactToLink}
+            onSelectNew={(suggestedName) => {
+              setLinkSelectionMode('new');
+              setArtifactToLink('');
+              if (suggestedName && !newArtifactName) {
+                setNewArtifactName(suggestedName);
+              }
+            }}
+            onSelectExisting={(artifactId) => {
+              setLinkSelectionMode('existing');
+              setArtifactToLink(artifactId);
+            }}
+            onClear={() => {
+              setLinkSelectionMode('none');
+              setArtifactToLink('');
+            }}
+            label="Select or Create Artifact"
+          />
 
-          {linkModalTab === 'existing' ? (
-            <form onSubmit={handleLinkArtifact} className="space-y-4">
-              <div>
-                <label htmlFor="link-artifact-select" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-                  Select Artifact *
-                </label>
-                {unlinkedArtifacts.length === 0 ? (
-                  <div className="p-4 rounded-level2 bg-brand-navy/[0.02] text-xs text-ink-secondary text-center font-semibold">
-                    All existing artifacts are already attached to this project. Switch to "Create New Empty Artifact" above to create one.
-                  </div>
-                ) : (
-                  <Select
-                    id="link-artifact-select"
-                    required
-                    value={artifactToLink}
-                    onChange={e => setArtifactToLink(e.target.value)}
-                  >
-                    <option value="">-- Choose an artifact --</option>
-                    {unlinkedArtifacts.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} ({a.currentVersion} • {a.status})
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setLinkingProjectId(null);
-                    setArtifactToLink('');
-                  }}
-                  type="button"
-                >
-                  Cancel
-                </Button>
-                <Button variant="coral" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
-                  Link to Project
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleLinkArtifact} className="space-y-4">
+          {linkSelectionMode === 'new' && (
+            <div className="space-y-3 pt-2 border-t border-surface-border animate-in fade-in duration-150">
               <div>
                 <label htmlFor="new-artifact-name" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
                   Artifact Name *
@@ -569,6 +531,7 @@ export const ProjectsPage: React.FC = () => {
                   id="new-artifact-name"
                   type="text"
                   required
+                  autoFocus
                   placeholder="e.g. Schedule C Expense Normalizer"
                   value={newArtifactName}
                   onChange={e => setNewArtifactName(e.target.value)}
@@ -592,27 +555,45 @@ export const ProjectsPage: React.FC = () => {
                 <span className="font-bold text-ink-primary uppercase text-[10px] block mb-0.5">Initial Pipeline Setup:</span>
                 Creates an empty draft pipeline (Stage 1 extraction, Stage 2 normalization, JSON schema template) bound directly to this project workspace.
               </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setLinkingProjectId(null);
-                    setNewArtifactName('');
-                    setNewArtifactDesc('');
-                    setLinkModalTab('existing');
-                  }}
-                  type="button"
-                >
-                  Cancel
-                </Button>
-                <Button variant="coral" type="submit" disabled={!newArtifactName.trim()}>
-                  Create & Link Artifact
-                </Button>
-              </div>
-            </form>
+            </div>
           )}
-        </div>
+
+          {linkSelectionMode === 'existing' && artifactToLink && (
+            <div className="p-3 bg-brand-navy/[0.03] dark:bg-white/[0.03] rounded-level2 border border-surface-border text-xs text-ink-secondary space-y-1">
+              <span className="font-bold text-ink-primary uppercase text-[10px] block">Artifact Details:</span>
+              <p className="text-ink-secondary text-xs">
+                {unlinkedArtifacts.find(a => a.id === artifactToLink)?.description || 'No description provided for this artifact.'}
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setLinkingProjectId(null);
+                setArtifactToLink('');
+                setNewArtifactName('');
+                setNewArtifactDesc('');
+                setLinkSelectionMode('none');
+              }}
+              type="button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="coral"
+              type="submit"
+              disabled={
+                linkSelectionMode === 'none' ||
+                (linkSelectionMode === 'existing' && !artifactToLink) ||
+                (linkSelectionMode === 'new' && !newArtifactName.trim())
+              }
+            >
+              {linkSelectionMode === 'new' ? 'Create & Link Artifact' : 'Link to Project'}
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Quick Assign Users Modal */}
