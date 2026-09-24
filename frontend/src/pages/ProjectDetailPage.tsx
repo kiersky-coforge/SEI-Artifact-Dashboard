@@ -161,14 +161,23 @@ export const ProjectDetailPage: React.FC = () => {
       hideable: false,
       cellClassName: 'whitespace-nowrap',
       render: art => (
-        <button
-          onClick={e => { e.stopPropagation(); detachArtifactFromProject(project.id, art.id); }}
-          className="p-1.5 rounded-level1 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          title="Detach Artifact from Project"
-          aria-label={`Detach ${art.name} from project`}
-        >
-          <Unlink className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center justify-end gap-1.5">
+          <Link
+            to={`/artifacts/${art.id}`}
+            onClick={e => e.stopPropagation()}
+            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-brand-navy dark:text-brand-blue hover:bg-brand-navy/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            Open
+          </Link>
+          <button
+            onClick={e => { e.stopPropagation(); detachArtifactFromProject(project.id, art.id); }}
+            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            title="Detach Artifact from Project"
+            aria-label={`Detach ${art.name} from project`}
+          >
+            Unlink
+          </button>
+        </div>
       ),
     },
   ];

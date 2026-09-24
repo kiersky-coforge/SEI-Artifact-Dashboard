@@ -16,10 +16,6 @@ import {
   FolderKanban,
   Cpu,
   Link2,
-  Unlink,
-  ExternalLink,
-  Trash2,
-  UserPlus,
   X,
   Search,
 } from 'lucide-react';
@@ -31,11 +27,11 @@ export const ProjectsPage: React.FC = () => {
     artifacts,
     users,
     createProject,
+    createArtifact,
     linkArtifactToProject,
     unlinkArtifactFromProject,
     assignUserToProject,
     detachUserFromProject,
-    deleteProject,
   } = usePrototype();
 
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
@@ -46,7 +42,10 @@ export const ProjectsPage: React.FC = () => {
   const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
 
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
+  const [linkModalTab, setLinkModalTab] = useState<'existing' | 'new'>('existing');
   const [artifactToLink, setArtifactToLink] = useState<string>('');
+  const [newArtifactName, setNewArtifactName] = useState('');
+  const [newArtifactDesc, setNewArtifactDesc] = useState('');
 
   const [assigningProjectId, setAssigningProjectId] = useState<string | null>(null);
   const [selectedUsersToAssign, setSelectedUsersToAssign] = useState<string[]>([]);
@@ -68,10 +67,21 @@ export const ProjectsPage: React.FC = () => {
 
   const handleLinkArtifact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!linkingProjectId || !artifactToLink) return;
-    linkArtifactToProject(linkingProjectId, artifactToLink);
+    if (!linkingProjectId) return;
+
+    if (linkModalTab === 'existing') {
+      if (!artifactToLink) return;
+      linkArtifactToProject(linkingProjectId, artifactToLink);
+    } else {
+      if (!newArtifactName.trim()) return;
+      createArtifact(newArtifactName, newArtifactDesc, linkingProjectId);
+    }
+
     setLinkingProjectId(null);
     setArtifactToLink('');
+    setNewArtifactName('');
+    setNewArtifactDesc('');
+    setLinkModalTab('existing');
   };
 
   const handleAssignUsers = () => {
@@ -80,13 +90,6 @@ export const ProjectsPage: React.FC = () => {
     setAssigningProjectId(null);
     setSelectedUsersToAssign([]);
     setUserSearchQuery('');
-  };
-
-  const handleDeleteProject = (e: React.MouseEvent, id: string, projName: string) => {
-    e.stopPropagation();
-    if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
-      deleteProject(id);
-    }
   };
 
   const targetProjectForLinking = projects.find(p => p.id === linkingProjectId);
@@ -159,22 +162,21 @@ export const ProjectsPage: React.FC = () => {
         <div className="flex items-center justify-end gap-1.5">
           <Link
             to={`/artifacts/${art.id}`}
-            className="p-1 rounded text-ink-secondary hover:text-brand-navy dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Open Editor & Schema"
-            aria-label={`Open editor for ${art.name}`}
+            onClick={e => e.stopPropagation()}
+            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-brand-navy dark:text-brand-blue hover:bg-brand-navy/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            Open
           </Link>
           <button
             onClick={e => {
               e.stopPropagation();
               unlinkArtifactFromProject(projectId, art.id);
             }}
-            className="p-1 rounded text-ink-secondary hover:text-alert-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             title="Unlink Artifact from Project"
             aria-label={`Unlink ${art.name} from project`}
           >
-            <Unlink className="w-3.5 h-3.5" />
+            Unlink
           </button>
         </div>
       ),
@@ -253,7 +255,7 @@ export const ProjectsPage: React.FC = () => {
     const assignedUsers = users.filter(u => (proj.userIds || []).includes(u.id) || u.projectIds.includes(proj.id));
 
     return (
-      <div className="px-6 py-5 bg-brand-navy/[0.02] dark:bg-white/[0.02] border-t border-b border-surface-border space-y-4">
+      <div className="px-6 py-5 bg-slate-100/80 dark:bg-slate-900/90 border-y-2 border-brand-navy/15 dark:border-brand-blue/30 shadow-inner space-y-4">
         {/* Sub-Panel Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-surface-border">
           <div>
@@ -267,36 +269,12 @@ export const ProjectsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setAssigningProjectId(proj.id)}
-              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <UserPlus className="w-3.5 h-3.5 text-brand-blue" />
-              <span>Assign User</span>
-            </button>
-            <button
-              onClick={() => setLinkingProjectId(proj.id)}
-              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Link2 className="w-3.5 h-3.5 text-brand-coral" />
-              <span>Attach Artifact</span>
-            </button>
             <Link
               to={`/projects/${proj.id}`}
               className="px-3.5 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-level1"
             >
-              <span>Open Full Workspace</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open</span>
             </Link>
-            <button
-              type="button"
-              onClick={e => handleDeleteProject(e, proj.id, proj.name)}
-              className="p-1.5 rounded-level2 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 border border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              title="Delete Project"
-              aria-label={`Delete project ${proj.name}`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -306,7 +284,17 @@ export const ProjectsPage: React.FC = () => {
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
               <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
             </p>
-            <span className="text-[10px] font-mono text-ink-secondary">Reusable Prompt Schemas</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setLinkingProjectId(proj.id);
+                setLinkModalTab('existing');
+              }}
+              icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
+            >
+              Link Artifact
+            </Button>
           </div>
 
           {linkedArts.length === 0 ? (
@@ -316,10 +304,13 @@ export const ProjectsPage: React.FC = () => {
                 No prompt pipelines currently linked to this project
               </p>
               <button
-                onClick={() => setLinkingProjectId(proj.id)}
+                onClick={() => {
+                  setLinkingProjectId(proj.id);
+                  setLinkModalTab('existing');
+                }}
                 className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
               >
-                <Plus className="w-3.5 h-3.5" /> Link existing artifact now
+                <Plus className="w-3.5 h-3.5" /> Link artifact now
               </button>
             </div>
           ) : (
@@ -491,52 +482,137 @@ export const ProjectsPage: React.FC = () => {
         onClose={() => {
           setLinkingProjectId(null);
           setArtifactToLink('');
+          setNewArtifactName('');
+          setNewArtifactDesc('');
+          setLinkModalTab('existing');
         }}
-        title="Attach Pipeline Artifact"
-        subtitle={`Select a reusable artifact to bind to ${targetProjectForLinking?.name || 'this project'}.`}
+        title="Link Pipeline Artifact"
+        subtitle={`Bind an existing or newly created artifact pipeline to ${targetProjectForLinking?.name || 'this project'}.`}
       >
-        <form onSubmit={handleLinkArtifact} className="space-y-4">
-          <div>
-            <label htmlFor="link-artifact-select" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-              Select Artifact *
-            </label>
-            {unlinkedArtifacts.length === 0 ? (
-              <div className="p-4 rounded-level2 bg-brand-navy/[0.02] text-xs text-ink-secondary text-center font-semibold">
-                All existing artifacts are already attached to this project.
-              </div>
-            ) : (
-              <Select
-                id="link-artifact-select"
-                required
-                value={artifactToLink}
-                onChange={e => setArtifactToLink(e.target.value)}
-              >
-                <option value="">-- Choose an artifact --</option>
-                {unlinkedArtifacts.map(a => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.currentVersion} • {a.status})
-                  </option>
-                ))}
-              </Select>
-            )}
+        <div className="space-y-4">
+          {/* Tab Switcher: Link Existing vs Create New */}
+          <div className="flex items-center gap-1 p-1 bg-brand-navy/[0.04] dark:bg-white/[0.04] rounded-level2 border border-surface-border">
+            <button
+              type="button"
+              onClick={() => setLinkModalTab('existing')}
+              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-level1 transition-all ${
+                linkModalTab === 'existing'
+                  ? 'bg-surface text-brand-navy dark:text-white shadow-sm'
+                  : 'text-ink-secondary hover:text-ink-primary'
+              }`}
+            >
+              Select Existing Artifact
+            </button>
+            <button
+              type="button"
+              onClick={() => setLinkModalTab('new')}
+              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-level1 transition-all ${
+                linkModalTab === 'new'
+                  ? 'bg-surface text-brand-navy dark:text-white shadow-sm'
+                  : 'text-ink-secondary hover:text-ink-primary'
+              }`}
+            >
+              + Create New Empty Artifact
+            </button>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setLinkingProjectId(null);
-                setArtifactToLink('');
-              }}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button variant="coral" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
-              Attach to Project
-            </Button>
-          </div>
-        </form>
+          {linkModalTab === 'existing' ? (
+            <form onSubmit={handleLinkArtifact} className="space-y-4">
+              <div>
+                <label htmlFor="link-artifact-select" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
+                  Select Artifact *
+                </label>
+                {unlinkedArtifacts.length === 0 ? (
+                  <div className="p-4 rounded-level2 bg-brand-navy/[0.02] text-xs text-ink-secondary text-center font-semibold">
+                    All existing artifacts are already attached to this project. Switch to "Create New Empty Artifact" above to create one.
+                  </div>
+                ) : (
+                  <Select
+                    id="link-artifact-select"
+                    required
+                    value={artifactToLink}
+                    onChange={e => setArtifactToLink(e.target.value)}
+                  >
+                    <option value="">-- Choose an artifact --</option>
+                    {unlinkedArtifacts.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} ({a.currentVersion} • {a.status})
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setLinkingProjectId(null);
+                    setArtifactToLink('');
+                  }}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button variant="coral" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
+                  Link to Project
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleLinkArtifact} className="space-y-4">
+              <div>
+                <label htmlFor="new-artifact-name" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
+                  Artifact Name *
+                </label>
+                <Input
+                  id="new-artifact-name"
+                  type="text"
+                  required
+                  placeholder="e.g. Schedule C Expense Normalizer"
+                  value={newArtifactName}
+                  onChange={e => setNewArtifactName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="new-artifact-desc" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
+                  Description (Optional)
+                </label>
+                <Textarea
+                  id="new-artifact-desc"
+                  rows={2}
+                  placeholder="Briefly describe what this extraction pipeline processes..."
+                  value={newArtifactDesc}
+                  onChange={e => setNewArtifactDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="p-3 bg-brand-navy/[0.03] dark:bg-white/[0.03] rounded-level2 border border-surface-border text-xs text-ink-secondary">
+                <span className="font-bold text-ink-primary uppercase text-[10px] block mb-0.5">Initial Pipeline Setup:</span>
+                Creates an empty draft pipeline (Stage 1 extraction, Stage 2 normalization, JSON schema template) bound directly to this project workspace.
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setLinkingProjectId(null);
+                    setNewArtifactName('');
+                    setNewArtifactDesc('');
+                    setLinkModalTab('existing');
+                  }}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button variant="coral" type="submit" disabled={!newArtifactName.trim()}>
+                  Create & Link Artifact
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </Modal>
 
       {/* Quick Assign Users Modal */}

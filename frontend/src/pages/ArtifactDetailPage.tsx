@@ -23,7 +23,6 @@ import {
   Trash2,
   Eye,
   Link2,
-  Unlink,
   Check,
 } from 'lucide-react';
 import type { ArtifactVersionSnapshot, Project } from '../../../shared/types';
@@ -236,11 +235,11 @@ export const ArtifactDetailPage: React.FC = () => {
       render: proj => (
         <button
           onClick={e => { e.stopPropagation(); detachArtifactFromProject(proj.id, artifact.id); }}
-          className="p-1 rounded text-ink-secondary hover:text-alert-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           title="Detach Project"
           aria-label={`Detach ${proj.name} from this artifact`}
         >
-          <Unlink className="w-3.5 h-3.5" />
+          Unlink
         </button>
       ),
     },

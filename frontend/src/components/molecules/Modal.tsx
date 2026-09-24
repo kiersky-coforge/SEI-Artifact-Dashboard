@@ -28,6 +28,16 @@ export const Modal: React.FC<ModalProps> = ({
   const descText = subtitle || description;
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // Pages pass `onClose={() => setX(false)}` inline, so the reference changes on every
+  // parent render (e.g. every keystroke in a field inside the modal). Reading it via a
+  // ref keeps that churn out of the effect's dependency array below — otherwise the
+  // effect re-runs on every keystroke and re-focuses the dialog's first element,
+  // yanking focus out from under whatever the user is typing in.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -38,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab' || !dialog) return;
@@ -65,7 +75,7 @@ export const Modal: React.FC<ModalProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
