@@ -57,15 +57,8 @@ export const ProjectsPage: React.FC = () => {
 
   const handleOpenLinkModal = (projectId: string) => {
     setLinkingProjectId(projectId);
-    const target = projects.find(p => p.id === projectId);
-    const unlinked = target ? artifacts.filter(a => !target.artifactIds.includes(a.id)) : [];
-    if (unlinked.length > 0) {
-      setLinkSelectionMode('existing');
-      setArtifactToLink(unlinked[0].id);
-    } else {
-      setLinkSelectionMode('new');
-      setArtifactToLink('');
-    }
+    setLinkSelectionMode('none');
+    setArtifactToLink('');
     setNewArtifactName('');
     setNewArtifactDesc('');
   };
@@ -108,9 +101,10 @@ export const ProjectsPage: React.FC = () => {
   };
 
   const targetProjectForLinking = projects.find(p => p.id === linkingProjectId);
-  const unlinkedArtifacts = targetProjectForLinking
-    ? artifacts.filter(a => !targetProjectForLinking.artifactIds.includes(a.id))
-    : [];
+  // Only artifacts not attached to ANY project/workspace in the system
+  const unlinkedArtifacts = useMemo(() => {
+    return artifacts.filter(a => !projects.some(p => p.artifactIds.includes(a.id)));
+  }, [artifacts, projects]);
 
   const targetProjectForAssigning = projects.find(p => p.id === assigningProjectId);
   const unassignedUsers = targetProjectForAssigning
@@ -495,8 +489,9 @@ export const ProjectsPage: React.FC = () => {
           setNewArtifactDesc('');
           setLinkSelectionMode('none');
         }}
+        maxWidth="2xl"
         title="Link Pipeline Artifact"
-        subtitle={`Bind an existing or newly created artifact pipeline to ${targetProjectForLinking?.name || 'this project'}.`}
+        subtitle={`Bind an existing unattached artifact or create a new pipeline for ${targetProjectForLinking?.name || 'this project'}.`}
       >
         <form onSubmit={handleLinkArtifact} className="space-y-4">
           <ArtifactSearchSelect

@@ -22,7 +22,7 @@ export const ArtifactSearchSelect: React.FC<ArtifactSearchSelectProps> = ({
   onSelectNew,
   onSelectExisting,
   onClear,
-  placeholder = 'Search or select an artifact, or create new...',
+  placeholder = 'Search or select an unlinked artifact, or create new...',
   label = 'Select or Create Artifact',
   required = true,
 }) => {
@@ -254,14 +254,14 @@ export const ArtifactSearchSelect: React.FC<ArtifactSearchSelectProps> = ({
             {/* Existing Artifacts Section */}
             <div className="pt-1">
               <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-ink-secondary bg-brand-navy/[0.02]">
-                Existing Artifacts ({filteredArtifacts.length})
+                Available Unattached Artifacts ({filteredArtifacts.length})
               </div>
 
               {filteredArtifacts.length === 0 ? (
                 <div className="py-4 px-3 text-center text-xs text-ink-secondary">
                   {artifacts.length === 0
-                    ? 'No existing artifacts available to link.'
-                    : `No existing artifacts matching "${searchQuery}".`}
+                    ? 'No unattached artifacts available. Select "+ Create New Empty Artifact" above to create one.'
+                    : `No unattached artifacts matching "${searchQuery}".`}
                 </div>
               ) : (
                 <div className="space-y-0.5 mt-0.5">
