@@ -20,7 +20,7 @@ import {
   History,
   ShieldCheck,
   Plus,
-  Trash2,
+  Archive,
   Eye,
   Link2,
   Check,
@@ -54,6 +54,7 @@ export const ArtifactDetailPage: React.FC = () => {
   const [fewShotExamples, setFewShotExamples] = useState<any[]>(artifact?.fewShotExamples || []);
 
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [changelog, setChangelog] = useState('');
   const [selectedSnapshot, setSelectedSnapshot] = useState<ArtifactVersionSnapshot | null>(null);
   const [isAttachProjectOpen, setIsAttachProjectOpen] = useState(false);
@@ -183,11 +184,10 @@ export const ArtifactDetailPage: React.FC = () => {
     }
   };
 
-  const handleDelete = () => {
-    if (confirm(`Permanently delete artifact "${artifact.name}"?`)) {
-      deleteArtifact(artifact.id);
-      navigate('/artifacts');
-    }
+  const handleArchiveConfirm = () => {
+    deleteArtifact(artifact.id);
+    setIsArchiveModalOpen(false);
+    navigate('/artifacts');
   };
 
   const detailTabs = [
@@ -354,22 +354,13 @@ export const ArtifactDetailPage: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Top back navigation */}
-      <div className="flex items-center justify-between">
+      <div>
         <Link
           to="/artifacts"
           className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-secondary hover:text-brand-navy dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Artifacts
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDelete}
-          className="text-alert-coral hover:bg-alert-coral/10"
-          icon={<Trash2 className="w-3.5 h-3.5" />}
-        >
-          Delete Artifact
-        </Button>
       </div>
 
       {/* Header Bar */}
@@ -407,6 +398,15 @@ export const ArtifactDetailPage: React.FC = () => {
             >
               Publish {nextPublishVersion}
             </Button>
+            <button
+              type="button"
+              onClick={() => setIsArchiveModalOpen(true)}
+              className="p-2 rounded-level2 border border-surface-border bg-surface hover:bg-alert-coral/10 text-ink-secondary hover:text-alert-coral hover:border-alert-coral/30 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-focus shadow-sm cursor-pointer"
+              title="Archive Artifact"
+              aria-label="Archive Artifact"
+            >
+              <Archive className="w-4 h-4" />
+            </button>
           </div>
         }
       />
@@ -662,6 +662,42 @@ export const ArtifactDetailPage: React.FC = () => {
             </Button>
             <Button variant="coral" onClick={handlePublishConfirm}>
               Publish {nextPublishVersion}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Archive Artifact Confirmation Modal */}
+      <Modal
+        isOpen={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        title="Archive Artifact"
+        subtitle={`Are you sure you want to archive "${artifact.name}"?`}
+      >
+        <div className="space-y-4">
+          <div className="p-3.5 bg-alert-coral/5 border border-alert-coral/20 rounded-level2 text-xs text-ink-primary space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-alert-coral uppercase tracking-wide text-[11px]">
+              <Archive className="w-4 h-4 text-alert-coral" /> Confirm Archive Action
+            </div>
+            <p className="text-ink-secondary">
+              This will unbind <strong>{artifact.name}</strong> from all active project workspaces and remove it from the active artifact registry.
+            </p>
+            <p className="text-[11px] text-ink-secondary font-mono">
+              Current Version: <span className="font-bold text-ink-primary">{artifact.currentVersion}</span> • Snapshots: <span className="font-bold text-ink-primary">{artifact.versions?.length || 0}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+            <Button variant="secondary" onClick={() => setIsArchiveModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="coral"
+              onClick={handleArchiveConfirm}
+              className="!bg-alert-coral hover:!bg-alert-coral/90"
+              icon={<Archive className="w-3.5 h-3.5" />}
+            >
+              Archive Artifact
             </Button>
           </div>
         </div>
