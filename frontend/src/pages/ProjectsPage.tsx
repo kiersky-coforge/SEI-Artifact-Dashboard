@@ -29,7 +29,6 @@ export const ProjectsPage: React.FC = () => {
     createProject,
     createArtifact,
     linkArtifactToProject,
-    unlinkArtifactFromProject,
     assignUserToProject,
     detachUserFromProject,
   } = usePrototype();
@@ -126,7 +125,7 @@ export const ProjectsPage: React.FC = () => {
     );
   }, [unassignedUsers, userSearchQuery]);
 
-  const getLinkedArtifactSubColumns = (projectId: string): ColumnDef<Artifact>[] => [
+  const linkedArtifactSubColumns: ColumnDef<Artifact>[] = [
     {
       id: 'name',
       header: 'Artifact Name',
@@ -176,17 +175,6 @@ export const ProjectsPage: React.FC = () => {
           >
             Open
           </Link>
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              unlinkArtifactFromProject(projectId, art.id);
-            }}
-            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Unlink Artifact from Project"
-            aria-label={`Unlink ${art.name} from project`}
-          >
-            Unlink
-          </button>
         </div>
       ),
     },
@@ -291,7 +279,7 @@ export const ProjectsPage: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
+              <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Artifact Pipelines ({linkedArts.length})
             </p>
             <Button
               variant="secondary"
@@ -299,7 +287,7 @@ export const ProjectsPage: React.FC = () => {
               onClick={() => handleOpenLinkModal(proj.id)}
               icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
             >
-              Link Artifact
+              Add Artifact
             </Button>
           </div>
 
@@ -307,20 +295,21 @@ export const ProjectsPage: React.FC = () => {
             <div className="p-6 rounded-level2 bg-surface dark:bg-surface-elevated border border-dashed border-brand-navy/[0.1] text-center space-y-2">
               <Cpu className="w-6 h-6 mx-auto text-ink-secondary opacity-50" />
               <p className="text-xs font-bold text-ink-secondary uppercase tracking-wide">
-                No prompt pipelines currently linked to this project
+                No prompt pipelines currently in this project
               </p>
               <button
                 onClick={() => handleOpenLinkModal(proj.id)}
                 className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
               >
-                <Plus className="w-3.5 h-3.5" /> Link artifact now
+                <Plus className="w-3.5 h-3.5" /> Add artifact now
               </button>
             </div>
           ) : (
             <DataTable<Artifact>
-              columns={getLinkedArtifactSubColumns(proj.id)}
+              columns={linkedArtifactSubColumns}
               data={linkedArts}
               getRowKey={art => art.id}
+              hideColumnChooser
             />
           )}
         </div>
@@ -435,7 +424,7 @@ export const ProjectsPage: React.FC = () => {
 
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1.5">
-              Attach Initial Artifacts (Optional)
+              Add Initial Artifacts (Optional)
             </label>
             <div className="space-y-1.5 max-h-44 overflow-y-auto border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
               {artifacts.length === 0 ? (
@@ -490,8 +479,8 @@ export const ProjectsPage: React.FC = () => {
           setLinkSelectionMode('none');
         }}
         maxWidth="2xl"
-        title="Link Pipeline Artifact"
-        subtitle={`Bind an existing unattached artifact or create a new pipeline for ${targetProjectForLinking?.name || 'this project'}.`}
+        title="Add Pipeline Artifact"
+        subtitle={`Add an existing unassigned artifact or create a new pipeline for ${targetProjectForLinking?.name || 'this project'}.`}
       >
         <form onSubmit={handleLinkArtifact} className="space-y-4">
           <ArtifactSearchSelect
@@ -585,7 +574,7 @@ export const ProjectsPage: React.FC = () => {
                 (linkSelectionMode === 'new' && !newArtifactName.trim())
               }
             >
-              {linkSelectionMode === 'new' ? 'Create & Link Artifact' : 'Link to Project'}
+              {linkSelectionMode === 'new' ? 'Create & Add Artifact' : 'Add to Project'}
             </Button>
           </div>
         </form>

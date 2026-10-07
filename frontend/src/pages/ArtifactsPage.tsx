@@ -27,7 +27,7 @@ export const ArtifactsPage: React.FC = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !initialProject) return;
     createArtifact(name, description, initialProject || undefined);
     setName('');
     setDescription('');
@@ -78,9 +78,9 @@ export const ArtifactsPage: React.FC = () => {
     },
     {
       id: 'projects',
-      header: 'Attached Projects',
+      header: 'Projects',
       filterable: true,
-      filter: { type: 'select-list', label: 'Attached Projects', options: projects.map(p => p.name) },
+      filter: { type: 'select-list', label: 'Projects', options: projects.map(p => p.name) },
       filterPredicate: (art, val: string[]) =>
         val.length === 0 || val.some(name => projects.find(p => p.name === name && art.projectIds.includes(p.id))),
       render: art => {
@@ -180,14 +180,15 @@ export const ArtifactsPage: React.FC = () => {
 
           <div>
             <label htmlFor="artifact-initial-project" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-              Bind to Initial Project (Optional)
+              Project *
             </label>
             <Select
               id="artifact-initial-project"
+              required
               value={initialProject}
               onChange={e => setInitialProject(e.target.value)}
             >
-              <option value="">-- Standalone (No project assigned yet) --</option>
+              <option value="">-- Choose a project --</option>
               {projects.map(p => (
                 <option key={p.id} value={p.id}>
                   {p.name}

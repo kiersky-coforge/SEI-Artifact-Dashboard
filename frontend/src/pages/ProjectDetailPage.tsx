@@ -13,7 +13,6 @@ import { ValidationHealthPill } from '../components/molecules/ValidationHealthPi
 import {
   ArrowLeft,
   Plus,
-  Link2,
   Unlink,
   Cpu,
   Trash2,
@@ -31,8 +30,6 @@ export const ProjectDetailPage: React.FC = () => {
     projects,
     artifacts,
     users,
-    attachArtifactToProject,
-    detachArtifactFromProject,
     assignUserToProject,
     detachUserFromProject,
     createArtifact,
@@ -40,15 +37,13 @@ export const ProjectDetailPage: React.FC = () => {
   } = usePrototype();
 
   const project = projects.find(p => p.id === id);
-  const [isAttachOpen, setIsAttachOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isAssignUserOpen, setIsAssignUserOpen] = useState(false);
   const [isCreateArtifactOpen, setIsCreateArtifactOpen] = useState(false);
   const [newArtName, setNewArtName] = useState('');
   const [newArtDesc, setNewArtDesc] = useState('');
-  const [selectedToAttach, setSelectedToAttach] = useState<string[]>([]);
   const [selectedUsersToAssign, setSelectedUsersToAssign] = useState<string[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState('');
-  const [artifactSearchQuery, setArtifactSearchQuery] = useState('');
 
   if (!project) {
     return (
@@ -62,17 +57,8 @@ export const ProjectDetailPage: React.FC = () => {
   }
 
   const linkedArtifacts = artifacts.filter(a => project.artifactIds.includes(a.id));
-  const unlinkedArtifacts = artifacts.filter(a => !project.artifactIds.includes(a.id));
   const assignedUsers = users.filter(u => (project.userIds || []).includes(u.id) || u.projectIds.includes(project.id));
   const unassignedUsers = users.filter(u => !(project.userIds || []).includes(u.id) && !u.projectIds.includes(project.id));
-
-  const filteredUnlinkedArtifacts = useMemo(() => {
-    if (!artifactSearchQuery.trim()) return unlinkedArtifacts;
-    const q = artifactSearchQuery.toLowerCase();
-    return unlinkedArtifacts.filter(
-      a => a.name.toLowerCase().includes(q) || a.description.toLowerCase().includes(q)
-    );
-  }, [unlinkedArtifacts, artifactSearchQuery]);
 
   const filteredUnassignedUsers = useMemo(() => {
     if (!userSearchQuery.trim()) return unassignedUsers;
@@ -84,12 +70,6 @@ export const ProjectDetailPage: React.FC = () => {
         u.roles.some(r => r.toLowerCase().includes(q))
     );
   }, [unassignedUsers, userSearchQuery]);
-
-  const handleAttachArtifacts = () => {
-    selectedToAttach.forEach(aid => attachArtifactToProject(project.id, aid));
-    setSelectedToAttach([]);
-    setIsAttachOpen(false);
-  };
 
   const handleAssignUsers = () => {
     selectedUsersToAssign.forEach(uid => assignUserToProject(project.id, uid));
@@ -108,10 +88,9 @@ export const ProjectDetailPage: React.FC = () => {
   };
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${project.name}"? Attached artifacts will remain in the library.`)) {
-      deleteProject(project.id);
-      navigate('/projects');
-    }
+    deleteProject(project.id);
+    setIsDeleteOpen(false);
+    navigate('/projects');
   };
 
   const linkedArtifactColumns: ColumnDef<Artifact>[] = [
@@ -169,14 +148,6 @@ export const ProjectDetailPage: React.FC = () => {
           >
             Open
           </Link>
-          <button
-            onClick={e => { e.stopPropagation(); detachArtifactFromProject(project.id, art.id); }}
-            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-alert-coral hover:bg-alert-coral/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Detach Artifact from Project"
-            aria-label={`Detach ${art.name} from project`}
-          >
-            Unlink
-          </button>
         </div>
       ),
     },
@@ -271,22 +242,13 @@ export const ProjectDetailPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top back navigation */}
-      <div className="flex items-center justify-between">
+      <div>
         <Link
           to="/projects"
           className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-secondary hover:text-brand-navy dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Projects
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDelete}
-          className="text-alert-coral hover:bg-alert-coral/10"
-          icon={<Trash2 className="w-3.5 h-3.5" />}
-        >
-          Delete Project
-        </Button>
       </div>
 
       {/* Header Bar */}
@@ -299,26 +261,27 @@ export const ProjectDetailPage: React.FC = () => {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setIsAssignUserOpen(true)}
-              icon={<UserPlus className="w-3.5 h-3.5 text-brand-blue" />}
+              onClick={() => setIsDeleteOpen(true)}
+              className="!text-alert-coral hover:!bg-alert-coral/10"
+              icon={<Trash2 className="w-3.5 h-3.5" />}
             >
-              Assign Users
+              Delete Project
             </Button>
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setIsAttachOpen(true)}
-              icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
+              onClick={() => setIsCreateArtifactOpen(true)}
+              icon={<Plus className="w-3.5 h-3.5 text-brand-coral" />}
             >
-              Attach Artifact
+              Add Artifact
             </Button>
             <Button
-              variant="coral"
+              variant="secondary"
               size="sm"
-              onClick={() => setIsCreateArtifactOpen(true)}
-              icon={<Plus className="w-3.5 h-3.5" />}
+              onClick={() => setIsAssignUserOpen(true)}
+              icon={<UserPlus className="w-3.5 h-3.5 text-brand-blue" />}
             >
-              New Artifact
+              Assign Users
             </Button>
           </div>
         }
@@ -328,28 +291,28 @@ export const ProjectDetailPage: React.FC = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
-            <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Pipeline Artifacts ({linkedArtifacts.length})
+            <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Pipeline Artifacts ({linkedArtifacts.length})
           </p>
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => setIsAttachOpen(true)}
+            onClick={() => setIsCreateArtifactOpen(true)}
             icon={<Plus className="w-3 h-3" />}
           >
-            Attach Artifact
+            Add Artifact
           </Button>
         </div>
 
         {linkedArtifacts.length === 0 ? (
           <div className="p-10 text-center rounded-level3 border border-dashed border-brand-navy/[0.1] bg-surface shadow-level1">
             <Cpu className="w-8 h-8 text-ink-secondary mx-auto mb-2 opacity-50" />
-            <h3 className="text-sm font-bold uppercase text-ink-primary">No Artifacts Attached</h3>
+            <h3 className="text-sm font-bold uppercase text-ink-primary">No Artifacts Yet</h3>
             <p className="text-xs text-ink-secondary mt-1 max-w-sm mx-auto">
-              Attach existing prompt & schema artifacts from the library or create a new dedicated pipeline.
+              Add existing prompt & schema artifacts from the library or create a new dedicated pipeline.
             </p>
             <div className="flex items-center justify-center gap-3 mt-4">
-              <Button variant="secondary" size="sm" onClick={() => setIsAttachOpen(true)}>
-                Attach Existing
+              <Button variant="secondary" size="sm" onClick={() => setIsCreateArtifactOpen(true)}>
+                Add Existing
               </Button>
               <Button variant="coral" size="sm" onClick={() => setIsCreateArtifactOpen(true)}>
                 Create New Artifact
@@ -404,81 +367,6 @@ export const ProjectDetailPage: React.FC = () => {
           />
         )}
       </div>
-
-      {/* Modal 1: Attach Existing Artifact */}
-      <Modal
-        isOpen={isAttachOpen}
-        onClose={() => {
-          setIsAttachOpen(false);
-          setSelectedToAttach([]);
-          setArtifactSearchQuery('');
-        }}
-        title="Attach Existing Artifacts"
-        subtitle="Select pipelines from the global schema library to bind to this project."
-      >
-        <div className="space-y-4">
-          {unlinkedArtifacts.length > 4 && (
-            <SearchInput
-              value={artifactSearchQuery}
-              onChange={setArtifactSearchQuery}
-              placeholder="Search available artifacts..."
-              className="w-full"
-            />
-          )}
-
-          {unlinkedArtifacts.length === 0 ? (
-            <p className="text-xs text-ink-secondary text-center py-4">All available artifacts are already attached to this project.</p>
-          ) : filteredUnlinkedArtifacts.length === 0 ? (
-            <p className="text-xs text-ink-secondary text-center py-4">No artifacts match "{artifactSearchQuery}".</p>
-          ) : (
-            <div className="max-h-60 overflow-y-auto space-y-2 border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
-              {filteredUnlinkedArtifacts.map(art => (
-                <label
-                  key={art.id}
-                  className="flex items-center gap-2.5 p-2 rounded-level1 hover:bg-surface-hover cursor-pointer text-xs transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedToAttach.includes(art.id)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setSelectedToAttach([...selectedToAttach, art.id]);
-                      } else {
-                        setSelectedToAttach(selectedToAttach.filter(id => id !== art.id));
-                      }
-                    }}
-                    className="rounded border-input text-brand-navy focus:ring-focus"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-ink-primary">{art.name}</div>
-                    <div className="text-[10px] text-ink-secondary font-mono">{art.currentVersion} • {art.status}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setIsAttachOpen(false);
-                setSelectedToAttach([]);
-                setArtifactSearchQuery('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="coral"
-              disabled={selectedToAttach.length === 0}
-              onClick={handleAttachArtifacts}
-            >
-              Attach Selected ({selectedToAttach.length})
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Modal 2: Assign Users to Project */}
       <Modal
@@ -577,12 +465,44 @@ export const ProjectDetailPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal 3: Create New Artifact */}
+      {/* Modal: Delete Project Confirmation */}
+      <Modal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        title="Delete Project"
+        subtitle={`Are you sure you want to delete "${project.name}"?`}
+      >
+        <div className="space-y-4">
+          <div className="p-3.5 bg-alert-coral/5 border border-alert-coral/20 rounded-level2 text-xs space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-alert-coral uppercase tracking-wide text-[11px]">
+              <Trash2 className="w-4 h-4" /> This cannot be undone
+            </div>
+            <p className="text-ink-secondary">
+              Deleting <strong>{project.name}</strong> will also permanently delete its {linkedArtifacts.length} artifact{linkedArtifacts.length === 1 ? '' : 's'} and all version history, and remove {assignedUsers.length} team member{assignedUsers.length === 1 ? '' : 's'} from the project.
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
+            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="coral"
+              onClick={handleDelete}
+              className="!bg-alert-coral hover:!bg-alert-coral/90"
+              icon={<Trash2 className="w-3.5 h-3.5" />}
+            >
+              Delete Project
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal 3: Add Artifact */}
       <Modal
         isOpen={isCreateArtifactOpen}
         onClose={() => setIsCreateArtifactOpen(false)}
-        title="Create & Attach Artifact"
-        subtitle={`Initialize a new schema pipeline bound directly to ${project.name}.`}
+        title="Add Artifact"
+        subtitle={`Create a new schema pipeline in ${project.name}.`}
       >
         <form onSubmit={handleCreateArtifact} className="space-y-4">
           <div>

@@ -14,9 +14,7 @@ interface PrototypeContextType {
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   attachArtifactToProject: (projectId: string, artifactId: string) => void;
-  detachArtifactFromProject: (projectId: string, artifactId: string) => void;
   linkArtifactToProject: (projectId: string, artifactId: string) => void;
-  unlinkArtifactFromProject: (projectId: string, artifactId: string) => void;
   
   // Artifacts
   artifacts: Artifact[];
@@ -159,10 +157,9 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteProject = (id: string) => {
     setProjects(prev => prev.filter(p => p.id !== id));
     setArtifacts(prev =>
-      prev.map(a => ({
-        ...a,
-        projectIds: a.projectIds.filter(pid => pid !== id),
-      }))
+      prev
+        .map(a => ({ ...a, projectIds: a.projectIds.filter(pid => pid !== id) }))
+        .filter(a => a.projectIds.length > 0)
     );
     setUsers(prev =>
       prev.map(u => ({
@@ -184,23 +181,6 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       prev.map(a =>
         a.id === artifactId && !a.projectIds.includes(projectId)
           ? { ...a, projectIds: [...a.projectIds, projectId], updatedAt: new Date().toISOString() }
-          : a
-      )
-    );
-  };
-
-  const detachArtifactFromProject = (projectId: string, artifactId: string) => {
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === projectId
-          ? { ...p, artifactIds: p.artifactIds.filter(aid => aid !== artifactId), updatedAt: new Date().toISOString() }
-          : p
-      )
-    );
-    setArtifacts(prev =>
-      prev.map(a =>
-        a.id === artifactId
-          ? { ...a, projectIds: a.projectIds.filter(pid => pid !== projectId), updatedAt: new Date().toISOString() }
           : a
       )
     );
@@ -585,9 +565,7 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateProject,
         deleteProject,
         attachArtifactToProject,
-        detachArtifactFromProject,
         linkArtifactToProject: attachArtifactToProject,
-        unlinkArtifactFromProject: detachArtifactFromProject,
         artifacts,
         createArtifact,
         updateArtifact,
