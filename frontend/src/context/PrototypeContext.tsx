@@ -14,15 +14,14 @@ interface PrototypeContextType {
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   attachArtifactToProject: (projectId: string, artifactId: string) => void;
-  detachArtifactFromProject: (projectId: string, artifactId: string) => void;
   linkArtifactToProject: (projectId: string, artifactId: string) => void;
-  unlinkArtifactFromProject: (projectId: string, artifactId: string) => void;
   
   // Artifacts
   artifacts: Artifact[];
   createArtifact: (name: string, description: string, initialProjectId?: string) => Artifact;
   updateArtifact: (id: string, updates: Partial<Artifact>) => void;
   publishArtifactVersion: (id: string, changelog?: string) => void;
+  createDraftVersion: (id: string) => void;
   revertArtifactVersion: (id: string, targetVersion: string) => void;
   deleteArtifact: (id: string) => void;
   validateArtifact: (id: string) => ValidationState;
@@ -158,10 +157,9 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteProject = (id: string) => {
     setProjects(prev => prev.filter(p => p.id !== id));
     setArtifacts(prev =>
-      prev.map(a => ({
-        ...a,
-        projectIds: a.projectIds.filter(pid => pid !== id),
-      }))
+      prev
+        .map(a => ({ ...a, projectIds: a.projectIds.filter(pid => pid !== id) }))
+        .filter(a => a.projectIds.length > 0)
     );
     setUsers(prev =>
       prev.map(u => ({
@@ -183,23 +181,6 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       prev.map(a =>
         a.id === artifactId && !a.projectIds.includes(projectId)
           ? { ...a, projectIds: [...a.projectIds, projectId], updatedAt: new Date().toISOString() }
-          : a
-      )
-    );
-  };
-
-  const detachArtifactFromProject = (projectId: string, artifactId: string) => {
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === projectId
-          ? { ...p, artifactIds: p.artifactIds.filter(aid => aid !== artifactId), updatedAt: new Date().toISOString() }
-          : p
-      )
-    );
-    setArtifacts(prev =>
-      prev.map(a =>
-        a.id === artifactId
-          ? { ...a, projectIds: a.projectIds.filter(pid => pid !== projectId), updatedAt: new Date().toISOString() }
           : a
       )
     );
@@ -384,6 +365,51 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       status: 'published',
       currentVersion: publishedVersionStr,
       versions: [...target.versions, snapshot],
+    });
+  };
+
+  const createDraftVersion = (id: string) => {
+    const target = artifacts.find(a => a.id === id);
+    if (!target) return;
+
+    const currentUser = users.find(u => u.roles.includes(persona)) || users[0];
+    const isDraft = target.currentVersion.endsWith('-draft');
+
+    // Drafting off a draft keeps the open draft as a saved snapshot in the version list.
+    const versions = isDraft
+      ? [
+          ...target.versions.filter(v => v.version !== target.currentVersion),
+          {
+            version: target.currentVersion,
+            stage1Prompt: target.stage1Prompt,
+            stage2Prompt: target.stage2Prompt,
+            jsonSchema: target.jsonSchema,
+            fewShotExamples: target.fewShotExamples,
+            publishedAt: new Date().toISOString(),
+            publishedBy: { id: currentUser.id, name: currentUser.name, email: currentUser.email },
+            changelog: 'Saved draft (not published)',
+          },
+        ]
+      : target.versions;
+
+    // Next minor after the highest version in use, so drafts never collide.
+    let major = 0;
+    let minor = 0;
+    [target.currentVersion, ...versions.map(v => v.version)].forEach(v => {
+      const m = v.match(/^v?(\d+)\.(\d+)/);
+      if (!m) return;
+      const mj = parseInt(m[1], 10);
+      const mn = parseInt(m[2], 10);
+      if (mj > major || (mj === major && mn > minor)) {
+        major = mj;
+        minor = mn;
+      }
+    });
+
+    updateArtifact(id, {
+      status: 'draft',
+      currentVersion: `v${major}.${minor + 1}.0-draft`,
+      versions,
     });
   };
 
@@ -573,13 +599,12 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateProject,
         deleteProject,
         attachArtifactToProject,
-        detachArtifactFromProject,
         linkArtifactToProject: attachArtifactToProject,
-        unlinkArtifactFromProject: detachArtifactFromProject,
         artifacts,
         createArtifact,
         updateArtifact,
         publishArtifactVersion,
+        createDraftVersion,
         revertArtifactVersion,
         deleteArtifact,
         validateArtifact,

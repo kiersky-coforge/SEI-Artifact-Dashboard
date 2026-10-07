@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { PrototypeProvider } from './context/PrototypeContext';
 import { AppShell } from './components/layout/AppShell';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -11,7 +11,7 @@ import { UserDetailPage } from './pages/UserDetailPage';
 export function App() {
   return (
     <PrototypeProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<AppShell />}>
             <Route index element={<Navigate to="/projects" replace />} />
@@ -24,7 +24,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/projects" replace />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </PrototypeProvider>
   );
 }

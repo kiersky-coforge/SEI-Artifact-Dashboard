@@ -65,6 +65,8 @@ export interface DataTableProps<T> {
   tableCta?: React.ReactNode;
   /** Hides the filter/columns toolbar row — for compact tables with no filterable columns. */
   hideToolbar?: boolean;
+  /** Hides just the "Columns" chooser button — for nested tables where column management belongs on the detail view. */
+  hideColumnChooser?: boolean;
 }
 
 function isFilterActive(value: any): boolean {
@@ -86,6 +88,7 @@ export function DataTable<T extends object>({
   emptyState,
   tableCta,
   hideToolbar,
+  hideColumnChooser,
 }: DataTableProps<T>) {
   const isExpandable = !!renderExpanded;
 
@@ -403,7 +406,8 @@ export function DataTable<T extends object>({
     );
   };
 
-  const showToolbar = !hideToolbar && (filterCols.length > 0 || hideableColumnsOrdered.length > 0 || tableCta);
+  const showColumnChooserButton = !hideColumnChooser && hideableColumnsOrdered.length > 0;
+  const showToolbar = !hideToolbar && (filterCols.length > 0 || showColumnChooserButton || tableCta);
 
   return (
     <div className="space-y-3">
@@ -432,7 +436,7 @@ export function DataTable<T extends object>({
               </button>
             )}
 
-            {hideableColumnsOrdered.length > 0 && (
+            {showColumnChooserButton && (
               <div className="relative" ref={chooserRef}>
                 <button
                   onClick={() => setShowColumnChooser(p => !p)}

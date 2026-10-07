@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
@@ -28,6 +29,16 @@ export const Modal: React.FC<ModalProps> = ({
   const descText = subtitle || description;
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  // Pages pass `onClose={() => setX(false)}` inline, so the reference changes on every
+  // parent render (e.g. every keystroke in a field inside the modal). Reading it via a
+  // ref keeps that churn out of the effect's dependency array below — otherwise the
+  // effect re-runs on every keystroke and re-focuses the dialog's first element,
+  // yanking focus out from under whatever the user is typing in.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -38,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab' || !dialog) return;
@@ -65,7 +76,7 @@ export const Modal: React.FC<ModalProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       previouslyFocused?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -78,8 +89,8 @@ export const Modal: React.FC<ModalProps> = ({
     '4xl': 'max-w-4xl',
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+  return createPortal(
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
       <div
         ref={dialogRef}
         tabIndex={-1}
@@ -110,6 +121,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

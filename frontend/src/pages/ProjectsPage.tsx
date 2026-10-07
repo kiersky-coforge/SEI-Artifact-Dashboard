@@ -7,19 +7,15 @@ import { Modal } from '../components/molecules/Modal';
 import { HeaderBar } from '../components/molecules/HeaderBar';
 import { Input } from '../components/atoms/Input';
 import { Textarea } from '../components/atoms/Textarea';
-import { Select } from '../components/atoms/Select';
 import { SearchInput } from '../components/atoms/SearchInput';
 import { DataTable, type ColumnDef } from '../components/organisms/DataTable';
 import { ValidationHealthPill } from '../components/molecules/ValidationHealthPill';
+import { ArtifactSearchSelect } from '../components/molecules/ArtifactSearchSelect';
 import {
   Plus,
   FolderKanban,
   Cpu,
   Link2,
-  Unlink,
-  ExternalLink,
-  Trash2,
-  UserPlus,
   X,
   Search,
 } from 'lucide-react';
@@ -31,11 +27,10 @@ export const ProjectsPage: React.FC = () => {
     artifacts,
     users,
     createProject,
+    createArtifact,
     linkArtifactToProject,
-    unlinkArtifactFromProject,
     assignUserToProject,
     detachUserFromProject,
-    deleteProject,
   } = usePrototype();
 
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
@@ -46,7 +41,10 @@ export const ProjectsPage: React.FC = () => {
   const [selectedArtifacts, setSelectedArtifacts] = useState<string[]>([]);
 
   const [linkingProjectId, setLinkingProjectId] = useState<string | null>(null);
+  const [linkSelectionMode, setLinkSelectionMode] = useState<'none' | 'new' | 'existing'>('none');
   const [artifactToLink, setArtifactToLink] = useState<string>('');
+  const [newArtifactName, setNewArtifactName] = useState('');
+  const [newArtifactDesc, setNewArtifactDesc] = useState('');
 
   const [assigningProjectId, setAssigningProjectId] = useState<string | null>(null);
   const [selectedUsersToAssign, setSelectedUsersToAssign] = useState<string[]>([]);
@@ -54,6 +52,14 @@ export const ProjectsPage: React.FC = () => {
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenLinkModal = (projectId: string) => {
+    setLinkingProjectId(projectId);
+    setLinkSelectionMode('none');
+    setArtifactToLink('');
+    setNewArtifactName('');
+    setNewArtifactDesc('');
   };
 
   const handleCreate = (e: React.FormEvent) => {
@@ -68,10 +74,21 @@ export const ProjectsPage: React.FC = () => {
 
   const handleLinkArtifact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!linkingProjectId || !artifactToLink) return;
-    linkArtifactToProject(linkingProjectId, artifactToLink);
+    if (!linkingProjectId) return;
+
+    if (linkSelectionMode === 'existing') {
+      if (!artifactToLink) return;
+      linkArtifactToProject(linkingProjectId, artifactToLink);
+    } else if (linkSelectionMode === 'new') {
+      if (!newArtifactName.trim()) return;
+      createArtifact(newArtifactName, newArtifactDesc, linkingProjectId);
+    }
+
     setLinkingProjectId(null);
     setArtifactToLink('');
+    setNewArtifactName('');
+    setNewArtifactDesc('');
+    setLinkSelectionMode('none');
   };
 
   const handleAssignUsers = () => {
@@ -82,17 +99,11 @@ export const ProjectsPage: React.FC = () => {
     setUserSearchQuery('');
   };
 
-  const handleDeleteProject = (e: React.MouseEvent, id: string, projName: string) => {
-    e.stopPropagation();
-    if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
-      deleteProject(id);
-    }
-  };
-
   const targetProjectForLinking = projects.find(p => p.id === linkingProjectId);
-  const unlinkedArtifacts = targetProjectForLinking
-    ? artifacts.filter(a => !targetProjectForLinking.artifactIds.includes(a.id))
-    : [];
+  // Only artifacts not attached to ANY project/workspace in the system
+  const unlinkedArtifacts = useMemo(() => {
+    return artifacts.filter(a => !projects.some(p => p.artifactIds.includes(a.id)));
+  }, [artifacts, projects]);
 
   const targetProjectForAssigning = projects.find(p => p.id === assigningProjectId);
   const unassignedUsers = targetProjectForAssigning
@@ -114,7 +125,7 @@ export const ProjectsPage: React.FC = () => {
     );
   }, [unassignedUsers, userSearchQuery]);
 
-  const getLinkedArtifactSubColumns = (projectId: string): ColumnDef<Artifact>[] => [
+  const linkedArtifactSubColumns: ColumnDef<Artifact>[] = [
     {
       id: 'name',
       header: 'Artifact Name',
@@ -159,23 +170,11 @@ export const ProjectsPage: React.FC = () => {
         <div className="flex items-center justify-end gap-1.5">
           <Link
             to={`/artifacts/${art.id}`}
-            className="p-1 rounded text-ink-secondary hover:text-brand-navy dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Open Editor & Schema"
-            aria-label={`Open editor for ${art.name}`}
+            onClick={e => e.stopPropagation()}
+            className="px-2.5 py-1 rounded-level1 text-[11px] font-bold uppercase tracking-wider text-brand-navy dark:text-brand-blue hover:bg-brand-navy/10 dark:hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            Open
           </Link>
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              unlinkArtifactFromProject(projectId, art.id);
-            }}
-            className="p-1 rounded text-ink-secondary hover:text-alert-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            title="Unlink Artifact from Project"
-            aria-label={`Unlink ${art.name} from project`}
-          >
-            <Unlink className="w-3.5 h-3.5" />
-          </button>
         </div>
       ),
     },
@@ -253,7 +252,7 @@ export const ProjectsPage: React.FC = () => {
     const assignedUsers = users.filter(u => (proj.userIds || []).includes(u.id) || u.projectIds.includes(proj.id));
 
     return (
-      <div className="px-6 py-5 bg-brand-navy/[0.02] dark:bg-white/[0.02] border-t border-b border-surface-border space-y-4">
+      <div className="px-6 py-5 bg-slate-100/80 dark:bg-slate-900/90 border-y-2 border-brand-navy/15 dark:border-brand-blue/30 shadow-inner space-y-4">
         {/* Sub-Panel Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-surface-border">
           <div>
@@ -267,36 +266,12 @@ export const ProjectsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setAssigningProjectId(proj.id)}
-              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <UserPlus className="w-3.5 h-3.5 text-brand-blue" />
-              <span>Assign User</span>
-            </button>
-            <button
-              onClick={() => setLinkingProjectId(proj.id)}
-              className="px-3 py-1.5 rounded-level2 bg-surface hover:bg-brand-navy/[0.04] text-brand-navy dark:text-white font-bold text-xs uppercase tracking-wider border border-input flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Link2 className="w-3.5 h-3.5 text-brand-coral" />
-              <span>Attach Artifact</span>
-            </button>
             <Link
               to={`/projects/${proj.id}`}
               className="px-3.5 py-1.5 rounded-level2 bg-brand-navy text-white hover:bg-brand-navy/90 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-level1"
             >
-              <span>Open Full Workspace</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open</span>
             </Link>
-            <button
-              type="button"
-              onClick={e => handleDeleteProject(e, proj.id, proj.name)}
-              className="p-1.5 rounded-level2 text-ink-secondary/60 hover:text-alert-coral hover:bg-alert-coral/10 border border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              title="Delete Project"
-              aria-label={`Delete project ${proj.name}`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -304,29 +279,37 @@ export const ProjectsPage: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-secondary flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Attached Artifact Pipelines ({linkedArts.length})
+              <Cpu className="w-3.5 h-3.5 text-brand-coral" /> Artifact Pipelines ({linkedArts.length})
             </p>
-            <span className="text-[10px] font-mono text-ink-secondary">Reusable Prompt Schemas</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleOpenLinkModal(proj.id)}
+              icon={<Link2 className="w-3.5 h-3.5 text-brand-coral" />}
+            >
+              Add Artifact
+            </Button>
           </div>
 
           {linkedArts.length === 0 ? (
             <div className="p-6 rounded-level2 bg-surface dark:bg-surface-elevated border border-dashed border-brand-navy/[0.1] text-center space-y-2">
               <Cpu className="w-6 h-6 mx-auto text-ink-secondary opacity-50" />
               <p className="text-xs font-bold text-ink-secondary uppercase tracking-wide">
-                No prompt pipelines currently linked to this project
+                No prompt pipelines currently in this project
               </p>
               <button
-                onClick={() => setLinkingProjectId(proj.id)}
+                onClick={() => handleOpenLinkModal(proj.id)}
                 className="text-xs text-brand-coral font-bold uppercase tracking-wider hover:underline inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded"
               >
-                <Plus className="w-3.5 h-3.5" /> Link existing artifact now
+                <Plus className="w-3.5 h-3.5" /> Add artifact now
               </button>
             </div>
           ) : (
             <DataTable<Artifact>
-              columns={getLinkedArtifactSubColumns(proj.id)}
+              columns={linkedArtifactSubColumns}
               data={linkedArts}
               getRowKey={art => art.id}
+              hideColumnChooser
             />
           )}
         </div>
@@ -441,7 +424,7 @@ export const ProjectsPage: React.FC = () => {
 
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1.5">
-              Attach Initial Artifacts (Optional)
+              Add Initial Artifacts (Optional)
             </label>
             <div className="space-y-1.5 max-h-44 overflow-y-auto border border-surface-border rounded-level2 p-2 bg-brand-navy/[0.02]">
               {artifacts.length === 0 ? (
@@ -485,41 +468,88 @@ export const ProjectsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Quick Link Artifact Modal */}
+      {/* Link / Create Pipeline Artifact Modal */}
       <Modal
         isOpen={!!linkingProjectId}
         onClose={() => {
           setLinkingProjectId(null);
           setArtifactToLink('');
+          setNewArtifactName('');
+          setNewArtifactDesc('');
+          setLinkSelectionMode('none');
         }}
-        title="Attach Pipeline Artifact"
-        subtitle={`Select a reusable artifact to bind to ${targetProjectForLinking?.name || 'this project'}.`}
+        maxWidth="2xl"
+        title="Add Pipeline Artifact"
+        subtitle={`Add an existing unassigned artifact or create a new pipeline for ${targetProjectForLinking?.name || 'this project'}.`}
       >
         <form onSubmit={handleLinkArtifact} className="space-y-4">
-          <div>
-            <label htmlFor="link-artifact-select" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
-              Select Artifact *
-            </label>
-            {unlinkedArtifacts.length === 0 ? (
-              <div className="p-4 rounded-level2 bg-brand-navy/[0.02] text-xs text-ink-secondary text-center font-semibold">
-                All existing artifacts are already attached to this project.
+          <ArtifactSearchSelect
+            artifacts={unlinkedArtifacts}
+            selectedMode={linkSelectionMode}
+            selectedArtifactId={artifactToLink}
+            onSelectNew={(suggestedName) => {
+              setLinkSelectionMode('new');
+              setArtifactToLink('');
+              if (suggestedName && !newArtifactName) {
+                setNewArtifactName(suggestedName);
+              }
+            }}
+            onSelectExisting={(artifactId) => {
+              setLinkSelectionMode('existing');
+              setArtifactToLink(artifactId);
+            }}
+            onClear={() => {
+              setLinkSelectionMode('none');
+              setArtifactToLink('');
+            }}
+            label="Select or Create Artifact"
+          />
+
+          {linkSelectionMode === 'new' && (
+            <div className="space-y-3 pt-2 border-t border-surface-border animate-in fade-in duration-150">
+              <div>
+                <label htmlFor="new-artifact-name" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
+                  Artifact Name *
+                </label>
+                <Input
+                  id="new-artifact-name"
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="e.g. Schedule C Expense Normalizer"
+                  value={newArtifactName}
+                  onChange={e => setNewArtifactName(e.target.value)}
+                />
               </div>
-            ) : (
-              <Select
-                id="link-artifact-select"
-                required
-                value={artifactToLink}
-                onChange={e => setArtifactToLink(e.target.value)}
-              >
-                <option value="">-- Choose an artifact --</option>
-                {unlinkedArtifacts.map(a => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.currentVersion} • {a.status})
-                  </option>
-                ))}
-              </Select>
-            )}
-          </div>
+
+              <div>
+                <label htmlFor="new-artifact-desc" className="block text-[10px] font-bold uppercase tracking-widest text-ink-secondary mb-1">
+                  Description (Optional)
+                </label>
+                <Textarea
+                  id="new-artifact-desc"
+                  rows={2}
+                  placeholder="Briefly describe what this extraction pipeline processes..."
+                  value={newArtifactDesc}
+                  onChange={e => setNewArtifactDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="p-3 bg-brand-navy/[0.03] dark:bg-white/[0.03] rounded-level2 border border-surface-border text-xs text-ink-secondary">
+                <span className="font-bold text-ink-primary uppercase text-[10px] block mb-0.5">Initial Pipeline Setup:</span>
+                Creates an empty draft pipeline (Stage 1 extraction, Stage 2 normalization, JSON schema template) bound directly to this project workspace.
+              </div>
+            </div>
+          )}
+
+          {linkSelectionMode === 'existing' && artifactToLink && (
+            <div className="p-3 bg-brand-navy/[0.03] dark:bg-white/[0.03] rounded-level2 border border-surface-border text-xs text-ink-secondary space-y-1">
+              <span className="font-bold text-ink-primary uppercase text-[10px] block">Artifact Details:</span>
+              <p className="text-ink-secondary text-xs">
+                {unlinkedArtifacts.find(a => a.id === artifactToLink)?.description || 'No description provided for this artifact.'}
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-surface-border">
             <Button
@@ -527,13 +557,24 @@ export const ProjectsPage: React.FC = () => {
               onClick={() => {
                 setLinkingProjectId(null);
                 setArtifactToLink('');
+                setNewArtifactName('');
+                setNewArtifactDesc('');
+                setLinkSelectionMode('none');
               }}
               type="button"
             >
               Cancel
             </Button>
-            <Button variant="coral" type="submit" disabled={!artifactToLink || unlinkedArtifacts.length === 0}>
-              Attach to Project
+            <Button
+              variant="coral"
+              type="submit"
+              disabled={
+                linkSelectionMode === 'none' ||
+                (linkSelectionMode === 'existing' && !artifactToLink) ||
+                (linkSelectionMode === 'new' && !newArtifactName.trim())
+              }
+            >
+              {linkSelectionMode === 'new' ? 'Create & Add Artifact' : 'Add to Project'}
             </Button>
           </div>
         </form>
