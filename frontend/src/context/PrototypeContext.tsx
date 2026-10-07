@@ -372,10 +372,44 @@ export const PrototypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const target = artifacts.find(a => a.id === id);
     if (!target) return;
 
-    const nextDraftVersion = getNextDraftVersion(target.currentVersion, target.versions);
+    const currentUser = users.find(u => u.roles.includes(persona)) || users[0];
+    const isDraft = target.currentVersion.endsWith('-draft');
+
+    // Drafting off a draft keeps the open draft as a saved snapshot in the version list.
+    const versions = isDraft
+      ? [
+          ...target.versions.filter(v => v.version !== target.currentVersion),
+          {
+            version: target.currentVersion,
+            stage1Prompt: target.stage1Prompt,
+            stage2Prompt: target.stage2Prompt,
+            jsonSchema: target.jsonSchema,
+            fewShotExamples: target.fewShotExamples,
+            publishedAt: new Date().toISOString(),
+            publishedBy: { id: currentUser.id, name: currentUser.name, email: currentUser.email },
+            changelog: 'Saved draft (not published)',
+          },
+        ]
+      : target.versions;
+
+    // Next minor after the highest version in use, so drafts never collide.
+    let major = 0;
+    let minor = 0;
+    [target.currentVersion, ...versions.map(v => v.version)].forEach(v => {
+      const m = v.match(/^v?(\d+)\.(\d+)/);
+      if (!m) return;
+      const mj = parseInt(m[1], 10);
+      const mn = parseInt(m[2], 10);
+      if (mj > major || (mj === major && mn > minor)) {
+        major = mj;
+        minor = mn;
+      }
+    });
+
     updateArtifact(id, {
       status: 'draft',
-      currentVersion: nextDraftVersion,
+      currentVersion: `v${major}.${minor + 1}.0-draft`,
+      versions,
     });
   };
 

@@ -254,7 +254,7 @@ export const ArtifactDetailPage: React.FC = () => {
     return [...(artifact.versions || [])].reverse();
   }, [artifact.versions]);
 
-  const publishedVersion = reversedVersions[0]?.version;
+  const publishedVersion = reversedVersions.find(v => !v.version.endsWith('-draft'))?.version;
 
   const versionRows = React.useMemo<ArtifactVersionSnapshot[]>(() => {
     if (!artifact.currentVersion.endsWith('-draft')) return reversedVersions;
@@ -334,6 +334,15 @@ export const ArtifactDetailPage: React.FC = () => {
             >
               <Eye className="w-3 h-3" /> Inspect
             </button>
+            {isActive && (
+              <button
+                onClick={e => { e.stopPropagation(); handleCreateNewDraft(); }}
+                className="px-2.5 py-1 rounded-level2 border border-brand-navy/15 hover:bg-brand-navy/[0.05] text-brand-navy dark:text-white font-bold text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                title="Start a new draft based on this version"
+              >
+                <Plus className="w-3 h-3" /> New Draft
+              </button>
+            )}
             {!isActive && (
               <button
                 onClick={e => { e.stopPropagation(); handleRevert(snap.version); }}
@@ -791,18 +800,28 @@ export const ArtifactDetailPage: React.FC = () => {
             <Button variant="secondary" onClick={() => setSelectedSnapshot(null)}>
               Close
             </Button>
-            {selectedSnapshot?.version !== artifact.currentVersion && (
-            <Button
-              variant="coral"
-              onClick={() => {
-                if (selectedSnapshot) {
+            {selectedSnapshot && selectedSnapshot.version !== artifact.currentVersion && selectedSnapshot.version !== activeVersionBase && (
+              <Button
+                variant="coral"
+                onClick={() => {
                   handleRevert(selectedSnapshot.version);
                   setSelectedSnapshot(null);
-                }
-              }}
-            >
-              Restore to Editor
-            </Button>
+                }}
+              >
+                Restore to Editor
+              </Button>
+            )}
+            {selectedSnapshot && (selectedSnapshot.version === artifact.currentVersion || selectedSnapshot.version === activeVersionBase) && (
+              <Button
+                variant="coral"
+                icon={<Plus className="w-3.5 h-3.5" />}
+                onClick={() => {
+                  handleCreateNewDraft();
+                  setSelectedSnapshot(null);
+                }}
+              >
+                New Draft
+              </Button>
             )}
           </div>
         </div>
